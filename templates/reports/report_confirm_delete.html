@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete - RMNIHR Reporting System{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center; padding: 2.5rem;">
+    <div style="display:flex;justify-content:center;margin-bottom: 1rem; color: var(--status-positive);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    
+    <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--primary);">Confirm Deletion</h2>
+    
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+        Are you sure you want to delete the diagnostic report for <strong>{{ report.patient_name }}</strong> (Lab ID: <strong>{{ report.lab_id }}</strong>)?
+    </p>
+    
+    <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 8px; padding: 12px; margin-bottom: 2rem; font-size: 0.85rem; color: var(--status-positive); font-weight: 500;">
+        This action is permanent and cannot be undone. All tests associated with this report will be deleted.
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="{% url 'dashboard' %}" class="btn-primary btn-accent" style="text-decoration: none; display: flex; align-items: center; justify-content: center; border-radius: 8px; padding: 0.6rem 1.5rem;">
+                No, Keep Report
+            </a>
+            <button type="submit" class="btn-primary" style="background-color: var(--status-positive);">
+                Yes, Delete Report
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

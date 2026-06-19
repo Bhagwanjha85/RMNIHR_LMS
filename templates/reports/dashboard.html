@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - RMNIHR Reporting System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header"
+    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin: 0;">LMS Diagnostic Dashboard</h2>
+        <p style="color: var(--text-muted); margin-top: 4px;">Manage and print patient different test reports</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'bulk_upload' %}" class="btn-primary btn-accent" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 8px; padding: 0.6rem 1rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Bulk Upload
+        </a>
+        <a href="{% url 'create_report' %}" class="btn-primary"
+            style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create New Report
+        </a>
+    </div>
+</div>
+
+<!-- Stats Metrics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>Total Reports</h3>
+            <div class="stat-value">{{ total_count }}</div>
+        </div>
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+                <line x1="9" y1="21" x2="9" y2="9" />
+            </svg>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>Positive Cases</h3>
+            <div class="stat-value">{{ positive_count }}</div>
+        </div>
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>Negative Cases</h3>
+            <div class="stat-value">{{ negative_count }}</div>
+        </div>
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>Equivocal Cases</h3>
+            <div class="stat-value">{{ equivocal_count }}</div>
+        </div>
+        <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div class="grid-layout" style="display: grid; gap: 2rem;">
+    <!-- Main Reports Panel -->
+    <div>
+        <!-- Search and Filters -->
+        <div class="card">
+            <div class="card-title">
+                <span style="display:flex;align-items:center;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    Filter Reports
+                </span>
+            </div>
+            <form method="GET" class="filter-form">
+                <div class="form-group">
+                    <label for="q">Search Patients</label>
+                    <input type="text" name="q" id="q" value="{{ query }}" placeholder="Search Name, Lab ID, Ref..."
+                        class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="test_filter">Test Name</label>
+                    <select name="test_filter" id="test_filter" class="form-control">
+                        <option value="">-- All Tests --</option>
+                        {% for choice, is_selected in test_choices %}
+                        <option value="{{ choice }}" {% if is_selected %}selected{% endif %}>{{ choice }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+                </div>
+                <div class="form-actions" style="display: flex; gap: 8px;">
+                    <button type="submit" class="btn-primary">Apply</button>
+                    <a href="{% url 'dashboard' %}" class="btn-primary btn-accent"
+                        style="text-decoration: none; padding: 0.6rem 1rem; display: flex; align-items: center; justify-content: center; border-radius: 8px;">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="card" id="reports-card">
+            <form method="POST" action="{% url 'bulk_delete' %}" id="bulk-delete-form">
+                {% csrf_token %}
+                <div class="card-title" style="display:flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        Reports List
+                        <span style="font-size: 0.8rem; background-color: var(--primary); color: white; padding: 2px 8px; border-radius: 20px;">{{ total_count }} records</span>
+                    </div>
+                    <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="submit" id="btn-print-selected" class="btn-primary" style="background-color: var(--secondary); border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem; opacity: 0.5;" disabled onclick="document.getElementById('bulk-delete-form').action='{% url 'bulk_print' %}';">
+                            Print Selected
+                        </button>
+                        
+                        <button type="button" class="btn-primary" style="background-color: #0284c7; border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('print-range-modal').style.display='flex';" title="Print all records or filter by range">
+                            Print All / Range
+                        </button>
+
+                        <button type="submit" id="btn-delete-selected" class="btn-primary" style="background-color: var(--status-positive); border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem; opacity: 0.5;" onclick="document.getElementById('bulk-delete-form').action='{% url 'bulk_delete' %}'; return confirm('Are you sure you want to delete the selected reports?');" disabled>
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+
+            <div id="reports-container" style="transition: opacity 0.3s ease;">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="select-all"></th>
+                                <th>Lab ID</th>
+                                <th>Patient Name</th>
+                                <th>Receiving / Reporting Date</th>
+                                <th>Age/Sex</th>
+                                <th>Ref By</th>
+                                <th>ELISA Tests</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if reports %}
+                            {% for report in reports %}
+                            <tr>
+                                <td style="text-align: center;"><input type="checkbox" name="report_ids" value="{{ report.pk }}" class="report-checkbox"></td>
+                                <td><span style="font-family: monospace; font-weight: bold; color: var(--secondary);">{{ report.lab_id }}</span></td>
+                                <td>
+                                    <div style="font-weight: 600;">{{ report.patient_name }}</div>
+                                </td>
+                                <td style="font-size: 0.85rem;">
+                                    <div style="display:flex;align-items:center;gap:4px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="8 17 12 21 16 17" />
+                                            <line x1="12" y1="3" x2="12" y2="21" />
+                                        </svg>
+                                        {{ report.receiving_date|date:"d/m/Y" }}
+                                    </div>
+                                    <div style="color: var(--text-muted); display:flex;align-items:center;gap:4px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="16 7 12 3 8 7" />
+                                            <line x1="12" y1="21" x2="12" y2="3" />
+                                        </svg>
+                                        {{ report.reporting_date|date:"d/m/Y" }}
+                                    </div>
+                                </td>
+                                <td>{{ report.age_value }} {{ report.get_age_unit_display }} / {{ report.sex }}</td>
+                                <td><span class="badge"
+                                        style="background-color: var(--border-color); color: var(--text-main);">{{ report.ref_by }}</span></td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        {% for t in report.tests.all %}
+                                        <div style="font-size: 0.8rem; white-space: nowrap;">
+                                            <span style="font-weight: 500;">{{ t.test_name }}:</span>
+                                            <span style="font-weight: bold;">{{ t.result_value }}</span>
+                                            {% if t.interpretation_text == 'Positive' %}
+                                            <span style="color: var(--status-positive); font-weight: bold;">(+)</span>
+                                            {% elif t.interpretation_text == 'Negative' %}
+                                            <span style="color: var(--status-negative);">(−)</span>
+                                            {% else %}
+                                            <span style="color: var(--status-equivocal);">(±)</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div class="action-btns" style="justify-content: flex-end;">
+                                        <a href="{% url 'view_report' report.pk %}" class="btn-icon" title="Print Report"
+                                            style="background-color: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #22c55e;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 6 2 18 2 18 9" />
+                                                <path
+                                                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                                                <rect x="6" y="14" width="12" height="8" />
+                                            </svg>
+                                        </a>
+                                        <a href="{% url 'edit_report' report.pk %}" class="btn-icon" title="Edit Report"
+                                            style="background-color: rgba(16, 117, 189, 0.1); border-color: rgba(16, 117, 189, 0.3); color: var(--secondary);">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                            </svg>
+                                        </a>
+                                        <a href="{% url 'delete_report' report.pk %}" class="btn-icon delete"
+                                            title="Delete Report">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                <path d="M10 11v6" />
+                                                <path d="M14 11v6" />
+                                                <path d="M9 6V4h6v2" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8"
+                                    style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;">
+                                    No reports found. Click "Create New Report" to start.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
+                    <div class="page-info" style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
+                        Showing page <strong style="color: var(--text-main);">{{ page_obj.number }}</strong> of <strong style="color: var(--text-main);">{{ page_obj.paginator.num_pages }}</strong>
+                    </div>
+                    <div class="page-controls" style="display: flex; gap: 8px;">
+                        {% if page_obj.has_previous %}
+                        <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if test_filter %}&test_filter={{ test_filter }}{% endif %}" class="btn-icon" title="First Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if test_filter %}&test_filter={{ test_filter }}{% endif %}" class="btn-icon" title="Previous Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </a>
+                        {% else %}
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg></span>
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></span>
+                        {% endif %}
+                        
+                        <span style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(16,117,189,0.2);">
+                            {{ page_obj.number }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if test_filter %}&test_filter={{ test_filter }}{% endif %}" class="btn-icon" title="Next Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}{% if test_filter %}&test_filter={{ test_filter }}{% endif %}" class="btn-icon" title="Last Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+                        </a>
+                        {% else %}
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg></span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar Analytics -->
+    <div>
+        <div class="card">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                Top Tests Run
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+                {% if top_tests %}
+                {% for item in top_tests %}
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-weight: 600; font-size: 0.9rem;">{{ item.test_name }}</span>
+                    <span style="background-color: var(--secondary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">{{ item.count }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color: var(--text-muted); font-style: italic; font-size: 0.85rem;">No test data available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card"
+            style="background: #a7a6a6; color: rgb(25, 25, 26); border: 1px solid #10388f; font-weight: 400;">
+            <h3 style="color: rgb(10, 10, 10); font-size: 1.1rem; margin-bottom: 8px; display:flex;align-items:center;gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Test Methods & Interpretations
+            </h3>
+            
+            <p style="font-size: 0.8rem; font-weight: bold; opacity: 0.9; margin-bottom: 4px; margin-top: 12px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 2px;">
+                ELISA (Quantitative)
+            </p>
+            <p style="font-size: 0.8rem; opacity: 0.9; line-height: 1.4; margin-bottom: 8px;">
+                The reporting system auto-interprets results:
+            </p>
+            <ul
+                style="font-size: 0.8rem; opacity: 0.9; padding-left: 16px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px;">
+                <li><strong>Negative:</strong> Value less than 9.0</li>
+                <li><strong>Equivocal:</strong> Value between 9.0 and 11.0</li>
+                <li><strong>Positive:</strong> Value greater than 11.0</li>
+            </ul>
+
+            <p style="font-size: 0.8rem; font-weight: bold; opacity: 0.9; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 2px;">
+                RT-PCR &amp; RAPID (Qualitative)
+            </p>
+            <p style="font-size: 0.8rem; opacity: 0.9; line-height: 1.4; margin-bottom: 8px;">
+                Manual interpretation is supported based on visual/system analysis. Recognized inputs:
+            </p>
+            <ul
+                style="font-size: 0.8rem; opacity: 0.9; padding-left: 16px; display: flex; flex-direction: column; gap: 4px;">
+                <li><strong>Positive</strong> / <strong>Negative</strong></li>
+                <li><strong>Equivocal</strong> / <strong>Invalid</strong></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.report-checkbox');
+    const btnDelete = document.getElementById('btn-delete-selected');
+    const btnPrint = document.getElementById('btn-print-selected');
+    
+    function toggleBtn() {
+        const currentCheckboxes = document.querySelectorAll('.report-checkbox');
+        const anyChecked = Array.from(currentCheckboxes).some(cb => cb.checked);
+        if (anyChecked) {
+            if (btnDelete) {
+                btnDelete.disabled = false;
+                btnDelete.style.opacity = '1';
+            }
+            if (btnPrint) {
+                btnPrint.disabled = false;
+                btnPrint.style.opacity = '1';
+            }
+        } else {
+            if (btnDelete) {
+                btnDelete.disabled = true;
+                btnDelete.style.opacity = '0.5';
+            }
+            if (btnPrint) {
+                btnPrint.disabled = true;
+                btnPrint.style.opacity = '0.5';
+            }
+        }
+    }
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleBtn();
+        });
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (!this.checked && selectAll) selectAll.checked = false;
+            if (Array.from(checkboxes).every(c => c.checked) && selectAll) {
+                selectAll.checked = true;
+            }
+            toggleBtn();
+        });
+    });
+
+    // AJAX Pagination
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('.pagination a');
+        if (link) {
+            e.preventDefault();
+            const url = link.href;
+            const container = document.getElementById('reports-container');
+            if (container) {
+                container.style.opacity = '0.5';
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContainer = doc.getElementById('reports-container');
+                    if (newContainer) {
+                        container.innerHTML = newContainer.innerHTML;
+                        container.style.opacity = '1';
+                        // Update URL
+                        window.history.pushState({path: url}, '', url);
+                        
+                        // Re-bind checkbox events since elements were replaced
+                        const newSelectAll = document.getElementById('select-all');
+                        const newCheckboxes = document.querySelectorAll('.report-checkbox');
+                        if (newSelectAll) {
+                            newSelectAll.addEventListener('change', function() {
+                                newCheckboxes.forEach(cb => cb.checked = this.checked);
+                                toggleBtn();
+                            });
+                        }
+                        newCheckboxes.forEach(cb => {
+                            cb.addEventListener('change', function() {
+                                if (!this.checked && newSelectAll) newSelectAll.checked = false;
+                                if (Array.from(newCheckboxes).every(c => c.checked) && newSelectAll) {
+                                    newSelectAll.checked = true;
+                                }
+                                toggleBtn();
+                            });
+                        });
+                        toggleBtn();
+                    }
+                })
+                .catch(err => {
+                    console.error('Pagination error:', err);
+                    container.style.opacity = '1';
+                    window.location.href = url; // Fallback
+                });
+            }
+        }
+    });
+});
+</script>
+<!-- Print Range Modal -->
+<div id="print-range-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="card" style="width: 100%; max-width: 400px; padding: 2rem; margin: 1rem; opacity: 1; transform: none; animation: none;">
+        <h3 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 1.25rem;">Download / Print Reports</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Filter by Date Range, Lab ID Range, or leave blank to download all reports.</p>
+        
+        <form method="POST" action="{% url 'bulk_print' %}">
+            {% csrf_token %}
+            <input type="hidden" name="print_all" value="true">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                <div class="form-group">
+                    <label for="modal_start_date">Start Date</label>
+                    <input type="date" name="start_date" id="modal_start_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="modal_end_date">End Date</label>
+                    <input type="date" name="end_date" id="modal_end_date" class="form-control">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label for="modal_start_lab_id">Start Lab ID</label>
+                    <input type="text" name="start_lab_id" id="modal_start_lab_id" class="form-control" placeholder="e.g. 1001">
+                </div>
+                <div class="form-group">
+                    <label for="modal_end_lab_id">End Lab ID</label>
+                    <input type="text" name="end_lab_id" id="modal_end_lab_id" class="form-control" placeholder="e.g. 1050">
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn-primary btn-accent" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.5rem 1rem;" onclick="document.getElementById('print-range-modal').style.display='none';">Cancel</button>
+                <button type="submit" class="btn-primary" style="background-color: #0284c7; padding: 0.5rem 1rem;" onclick="document.getElementById('print-range-modal').style.display='none';">Download Reports</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

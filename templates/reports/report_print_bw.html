@@ -1,0 +1,445 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report - {{ report.lab_id }} (B&W)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #d0d0d0;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #000;
+        }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            max-width: 220mm;
+            margin: 18px auto 0;
+            background: #333;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toolbar h2 {
+            color: #fff;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tb-btns { display: flex; gap: 8px; align-items: center; }
+        .tb-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+        .tb-btn:hover { opacity: .8; }
+        .tb-back { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+        .tb-color { background: #1b285c; color: #fff; }
+        .tb-print { background: #222; color: #fff; border: 1px solid #555; }
+
+        /* Template switcher */
+        .tpl-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,.1);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: .78rem;
+            color: #eee;
+        }
+        .tpl-switch select {
+            background: #555;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: .78rem;
+            cursor: pointer;
+        }
+
+        /* ── PAGE WRAP ── */
+        .page-wrap {
+            max-width: 220mm;
+            margin: 0 auto 40px;
+            background: #fff;
+            box-shadow: 0 8px 24px rgba(0,0,0,.25);
+            border-radius: 0 0 6px 6px;
+        }
+
+        /* ── A4 ── */
+        .a4 {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm 12mm 8mm;
+            background: #fff;
+            position: relative;
+        }
+
+        /* Outer border */
+        .a4-inner {
+            border: 2px solid #000;
+            padding: 5mm 6mm;
+            min-height: 276mm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ── */
+        .report-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 6px;
+        }
+        .logo-box {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+        .logo-box img { max-height: 70px; width: auto; filter: grayscale(100%); }
+        .header-text { width: 100%; text-align: center; }
+        .header-text .h-main {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            line-height: 1.2;
+        }
+        .header-text .h-sub {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #000;
+            margin-top: 3px;
+        }
+        .header-text .h-sponsor {
+            font-size: 8pt;
+            font-style: italic;
+            color: #333;
+            margin-top: 2px;
+        }
+        .header-text .h-addr {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #000;
+            margin-top: 2px;
+        }
+
+        /* ── DIVIDERS ── */
+        .divider-thick { border: none; border-top: 2px solid #000; margin: 5px -6mm; }
+        .divider-thin  { border: none; border-top: 1px solid #000; margin: 4px -6mm; }
+
+        /* ── PATIENT INFO ── */
+        .section-title {
+            font-size: 9pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: underline;
+            margin-bottom: 5px;
+            margin-top: 4px;
+        }
+
+        .info-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+        .info-table td { padding: 3px 5px; vertical-align: middle; line-height: 1.3; }
+        .info-table td.lbl { font-weight: 700; white-space: nowrap; width: 18%; }
+        .info-table td.val {
+            border-bottom: 1px solid #000;
+            width: 30%;
+            padding-left: 6px;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .info-table td.spacer { width: 5%; }
+
+        /* ── RESULTS TABLE ── */
+        .method-line {
+            font-size: 9.5pt;
+            font-weight: 700;
+            text-decoration: underline;
+            margin: 8px 0 5px;
+        }
+
+        .results-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 4px; }
+        .results-table thead tr { border-top: 2px solid #000; border-bottom: 2px solid #000; }
+        .results-table thead th {
+            padding: 5px 8px;
+            font-weight: 700;
+            border-right: 1px solid #000;
+            font-size: 9.5pt;
+            text-transform: uppercase;
+        }
+        .results-table thead th:last-child { border-right: none; }
+        .results-table tbody tr { border-bottom: 1px solid #aaa; }
+        .results-table tbody td {
+            padding: 6px 8px;
+            vertical-align: top;
+            border-right: 1px solid #aaa;
+        }
+        .results-table tbody td:last-child { border-right: none; }
+        .results-table tbody td.test-name { font-weight: 700; width: 32%; }
+        .results-table tbody td.interp { text-align: center; width: 38%; font-size: 9.5pt; line-height: 1.5; }
+        .results-table tbody td.result { text-align: right; font-weight: 700; font-size: 11pt; width: 30%; }
+        .results-table tfoot td {
+            border-top: 2px solid #000;
+            padding: 4px 8px;
+            font-size: 8.5pt;
+        }
+
+        .status-label {
+            font-weight: 700;
+            font-size: 10pt;
+            border: 1.5px solid #000;
+            padding: 1px 7px;
+            border-radius: 2px;
+        }
+
+        /* ── SIGNATURES ── */
+        .sig-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+        .sig-item { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .sig-space { height: 40px; }
+        .sig-label {
+            font-size: 8.5pt;
+            font-weight: 700;
+            border-top: 1.5px solid #000;
+            width: 88%;
+            padding-top: 4px;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+        .sig-name { font-size: 8pt; color: #333; margin-top: 1px; }
+
+        /* ── FOOTER NOTE ── */
+        .footer-note {
+            font-size: 7.5pt;
+            color: #333;
+            line-height: 1.4;
+            border-top: 1.5px solid #000;
+            padding-top: 5px;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .footer-note strong { font-style: normal; }
+
+        /* ── PRINT RULES ── */
+        @page { size: A4; margin: 0; }
+        @media print {
+            body { background: #fff !important; }
+            .toolbar { display: none !important; }
+            .page-wrap { box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            .a4 { padding: 10mm 12mm 8mm !important; width: 100% !important; min-height: 297mm !important; }
+            .a4-inner { min-height: 276mm !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print Preview &nbsp;|&nbsp; <span style="opacity:.7;font-weight:400;">Lab ID: {{ report.lab_id }}</span>
+        </h2>
+        <div class="tb-btns">
+            <div class="tpl-switch">
+                <span>Template:</span>
+                <select onchange="if(this.value==='color') window.location.href='{% url 'view_report' report.pk %}';">
+                    <option value="bw" selected>&#9648; Black &amp; White</option>
+                    <option value="color">&#9632; Colored</option>
+                </select>
+            </div>
+            <a href="{% url 'dashboard' %}" class="tb-btn tb-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'edit_report' report.pk %}" class="tb-btn tb-color">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit
+            </a>
+            <button onclick="window.print()" class="tb-btn tb-print">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                Print / Save PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- A4 PAGE -->
+    <div class="page-wrap">
+        <div class="a4">
+            <div class="a4-inner">
+
+                <!-- HEADER -->
+                <div class="report-header">
+                    <div class="logo-box">
+                        <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo"
+                             onerror="this.style.display='none';"
+                             style="max-height:75px;width:auto;">
+                    </div>
+                    <div class="header-text">
+                        <div class="h-main">Viral Research &amp; Diagnostic Laboratories</div>
+                        <div class="h-sub">Department of Virology</div>
+                        <div class="h-sponsor">(Dept. of Health Research Sponsored Medical College Level VRDL)</div>
+                        <div class="h-addr">Agamkuan, Patna, Bihar &ndash; 800007</div>
+                    </div>
+                </div>
+
+                <hr class="divider-thick">
+
+                <!-- PATIENT INFORMATION -->
+                <div class="section-title">Patient Information</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="lbl">Lab ID</td>
+                        <td class="val">{{ report.lab_id }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Receiving Date</td>
+                        <td class="val">{{ formatted_receiving_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Patient Name</td>
+                        <td class="val">{{ report.patient_name }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Reporting Date</td>
+                        <td class="val">{{ formatted_reporting_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Age</td>
+                        <td class="val">{{ report.age_value }} {{ report.get_age_unit_display }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Sex</td>
+                        <td class="val">{{ sex_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Ref. By</td>
+                        <td class="val">{{ report.ref_by }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Sample Type</td>
+                        <td class="val">{{ report.sample_type }}</td>
+                    </tr>
+                </table>
+
+                <hr class="divider-thick" style="margin-top:10px;">
+
+                <!-- TEST RESULTS -->
+                <div class="section-title">Test Results</div>
+                <div class="method-line">Method: {{ report.test_method }}</div>
+
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Test / Parameter Name</th>
+                            {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                            <th style="text-align:right;">Result &amp; Status</th>
+                            {% else %}
+                            <th style="text-align:center;">Interpretation Range</th>
+                            <th style="text-align:right;">Result &amp; Status</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in report.tests.all %}
+                        <tr>
+                            <td class="test-name">{{ test.test_name }}</td>
+                            {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                            <td class="result right">
+                                {% if test.result_value|lower == 'positive' %}
+                                    <span class="status-label">POSITIVE</span>
+                                {% elif test.result_value|lower == 'negative' %}
+                                    <span class="status-label">NEGATIVE</span>
+                                {% else %}
+                                    <span class="status-label">{{ test.result_value|upper }}</span>
+                                {% endif %}
+                            </td>
+                            {% else %}
+                            <td class="interp">Negative &lt; 9.00 &nbsp;|&nbsp; Equivocal 9.00&ndash;11.00 &nbsp;|&nbsp; Positive &gt; 11.00</td>
+                            <td class="result">
+                                {{ test.result_value }}&nbsp;
+                                {% if test.interpretation_text == 'Positive' %}
+                                <span class="status-label">POSITIVE</span>
+                                {% elif test.interpretation_text == 'Negative' %}
+                                <span class="status-label">NEGATIVE</span>
+                                {% else %}
+                                <span class="status-label">EQUIVOCAL</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="{% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}2{% else %}3{% endif %}">
+                                Total tests reported: {{ report.tests.count }} &nbsp;&mdash;&nbsp; 
+                                {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                                All values are qualitative results.
+                                {% else %}
+                                All values are quantitative OD readings.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <!-- SIGNATURES -->
+                <div class="sig-section">
+                    <div class="sig-item">
+                        <div class="sig-space"></div>
+                        <div class="sig-label">{{ report.prepared_by_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-space"></div>
+                        <div class="sig-label">{{ report.technician_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-space"></div>
+                        <div class="sig-label">{{ report.scientist_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-space"></div>
+                        <div class="sig-label">{{ report.vc_title }}</div>
+                        <div class="sig-name">({{ report.vc_name }})</div>
+                    </div>
+                </div>
+
+                <!-- FOOTER NOTE -->
+                <div class="footer-note">
+                    <strong>Note:</strong> {{ report.notes }}
+                </div>
+
+            </div><!-- a4-inner -->
+        </div><!-- a4 -->
+    </div><!-- page-wrap -->
+
+</body>
+</html>

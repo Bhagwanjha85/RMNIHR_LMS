@@ -1,0 +1,14 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('report/create/', views.create_report, name='create_report'),
+    path('report/<int:pk>/', views.view_report, name='view_report'),
+    path('report/<int:pk>/edit/', views.edit_report, name='edit_report'),
+    path('report/<int:pk>/bw/', views.view_report_bw, name='view_report_bw'),
+    path('report/<int:pk>/delete/', views.delete_report, name='delete_report'),
+    path('bulk-upload/', views.bulk_upload, name='bulk_upload'),
+    path('bulk-delete/', views.bulk_delete_reports, name='bulk_delete'),
+    path('bulk-print/', views.bulk_print_reports, name='bulk_print'),
+]

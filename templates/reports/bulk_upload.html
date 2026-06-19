@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Bulk Upload Reports - RMNIHR Reporting System{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto; padding: 2rem;">
+    <h2 style="font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem;">Bulk Upload Patient Reports</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+        Upload an Excel file (.xlsx) to automatically generate reports. If any fields are left blank in the file, they will be left blank in the system so you can manually fill them later.
+    </p>
+    <div style="background-color: var(--bg-color); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem;">Expected Columns (Case-insensitive):</h4>
+        <ul style="font-size: 0.85rem; color: var(--text-main); margin-left: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+            <li>Patient Name</li><li>Lab ID</li><li>Age</li><li>Sex</li><li>Ref By</li><li>Sample Type</li>
+            <li>Test Method</li><li>Test Name</li><li>Result Value</li><li>Receiving Date</li><li>Reporting Date</li>
+        </ul>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="excel_file">Select Excel File</label>
+            <input type="file" id="excel_file" name="excel_file" accept=".xlsx, .xls" class="form-control" required style="padding: 0.5rem;">
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="{% url 'dashboard' %}" class="btn-primary btn-accent" style="text-decoration: none; padding: 0.6rem 1.5rem; border-radius: 8px;">Cancel</a>
+            <button type="submit" class="btn-primary">Upload & Process</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Report - RMNIHR Reporting System{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.8rem; font-weight: 800; margin: 0;">{{ action }} Diagnostic Report</h2>
+    <p style="color: var(--text-muted); margin-top: 4px;">Enter patient details, select ELISA tests, and enter results.</p>
+</div>
+
+<div class="card">
+    <div class="card-title">{{ action }} Report Details</div>
+    
+    <form method="POST" id="report-form" action="">
+        {% csrf_token %}
+        
+        <!-- Hidden Inputs for Javascript Integration -->
+        <input type="hidden" id="tests-data-json" name="tests_data_json" value="[]">
+        {% if existing_tests_json %}
+            <input type="hidden" id="existing-tests-data" value="{{ existing_tests_json }}">
+        {% endif %}
+        
+        <!-- Patient Info Grid -->
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; border-left: 3px solid var(--secondary); padding-left: 8px;">1. Patient Demographics & Metadata</h3>
+        <div class="form-grid">
+            <!-- Column 1 -->
+            <div>
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label for="lab_id">Lab ID *</label>
+                    <input type="text" id="lab_id" name="lab_id" required class="form-control" 
+                           value="{% if report %}{{ report.lab_id }}{% endif %}" placeholder="e.g. 4364">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label for="patient_name">Patient Name *</label>
+                    <input type="text" id="patient_name" name="patient_name" required class="form-control" 
+                           value="{{ report.patient_name|default:'' }}" placeholder="e.g. BHAVIKA KUMARI" style="text-transform: uppercase;">
+                </div>
+                
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0;">
+                    <div class="form-group">
+                        <label for="sex">Sex *</label>
+                        <select id="sex" name="sex" required class="form-control">
+                            <option value="M" {% if report.sex == 'M' %}selected{% endif %}>Male</option>
+                            <option value="F" {% if report.sex == 'F' or not report %}selected{% endif %}>Female</option>
+                            <option value="O" {% if report.sex == 'O' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ref_by">Ref. By *</label>
+                        <input type="text" id="ref_by" name="ref_by" required class="form-control" 
+                               value="{% if report %}{{ report.ref_by }}{% endif %}" placeholder="e.g. NMCH" style="text-transform: uppercase;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Column 2 -->
+            <div>
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label for="test_method">Test Method *</label>
+                    <input type="text" id="test_method" name="test_method" required class="form-control" list="test-methods-list" 
+                           value="{% if report %}{{ report.test_method }}{% else %}ELISA{% endif %}" placeholder="e.g. ELISA, RT-PCR, RAPID">
+                    <datalist id="test-methods-list">
+                        <option value="ELISA">
+                        <option value="RT-PCR">
+                        <option value="RAPID">
+                    </datalist>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label for="sample_type">Sample Type *</label>
+                    <input type="text" id="sample_type" name="sample_type" required class="form-control" 
+                           value="{% if report %}{{ report.sample_type }}{% else %}BLOOD{% endif %}" placeholder="e.g. BLOOD" style="text-transform: uppercase;">
+                </div>
+                
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                    <div class="form-group">
+                        <label for="receiving_date">Receiving Date *</label>
+                        <input type="date" id="receiving_date" name="receiving_date" required class="form-control" 
+                               value="{{ default_receiving_date }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reporting_date">Reporting Date *</label>
+                        <input type="date" id="reporting_date" name="reporting_date" required class="form-control" 
+                               value="{{ default_reporting_date }}">
+                    </div>
+                </div>
+                
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 0;">
+                    <div class="form-group">
+                        <label for="age_value">Age Value *</label>
+                        <input type="number" id="age_value" name="age_value" required min="0" class="form-control" 
+                               value="{% if report %}{{ report.age_value }}{% endif %}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age_unit">Age Unit *</label>
+                        <select id="age_unit" name="age_unit" required class="form-control">
+                            <option value="Y" {% if report.age_unit == 'Y' or not report %}selected{% endif %}>Years (Y)</option>
+                            <option value="M" {% if report.age_unit == 'M' %}selected{% endif %}>Months (M)</option>
+                            <option value="D" {% if report.age_unit == 'D' %}selected{% endif %}>Days (D)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Results Section -->
+        <h3 style="font-size: 1.1rem; margin-top: 2rem; margin-bottom: 1rem; border-left: 3px solid var(--secondary); padding-left: 8px;">2. Test Results</h3>
+        
+        <div class="test-builder-box">
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--primary);">Add Test Entry</h4>
+            
+            <div class="test-input-row">
+                <div class="form-group">
+                    <label for="test-select">Test / Parameter Name</label>
+                    <input type="text" id="test-select" class="form-control" list="test-options" placeholder="Select or type test name...">
+                    <datalist id="test-options">
+                        {% for choice in all_test_choices %}
+                            <option value="{{ choice }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                
+                <div class="form-group" id="result-input-group">
+                    <label for="result-input" id="result-input-label">Result Value</label>
+                    <input type="text" id="result-input" placeholder="e.g. 2.959 or Positive" class="form-control">
+                    <select id="result-select" class="form-control" style="display: none;">
+                        <option value="Positive">Positive</option>
+                        <option value="Negative">Negative</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="interpretation-preview-container" style="padding-bottom: 8px;">
+                    <div id="interpretation-preview" class="interpretation-preview-text"></div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" id="add-test-btn" class="btn-primary btn-accent" style="white-space: nowrap; height: 38px; padding: 0 1.2rem; display:inline-flex;align-items:center;gap:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Test
+                    </button>
+                </div>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+                Note: For ELISA, interpretation is calculated automatically: <strong>Negative &lt; 9.0</strong>, <strong>Equivocal 9.0 – 11.0</strong>, <strong>Positive &gt; 11.0</strong>. For RT-PCR/RAPID, type your interpretation (e.g. Positive) in Result.
+            </p>
+        </div>
+        
+        <!-- Tests Table -->
+        <div style="margin-bottom: 2rem;">
+            <table class="data-table" style="background-color: transparent;">
+                <thead>
+                    <tr>
+                        <th>Test Parameter</th>
+                        <th id="th-auto-interpretation">Auto Interpretation</th>
+                        <th>Entered Value</th>
+                        <th style="width: 80px; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tests-table-body">
+                    <!-- Dynamic JavaScript Table Rows -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Signatures and Notes -->
+        <h3 style="font-size: 1.1rem; margin-top: 2rem; margin-bottom: 1rem; border-left: 3px solid var(--secondary); padding-left: 8px;">3. Signatures & Report Footnotes</h3>
+        
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label for="notes">Report Footer Note</label>
+            <textarea id="notes" name="notes" rows="3" class="form-control" style="font-family: inherit; font-size: 0.9rem; resize: vertical;">{% if report %}{{ report.notes }}{% else %}{{ default_notes }}{% endif %}</textarea>
+        </div>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--primary);">Configure Active Signatures</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        <input type="checkbox" name="show_prepared_by" {% if report.show_prepared_by or not report %}checked{% endif %}>
+                        Include "Report Prepared by"
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        <input type="checkbox" name="show_technician" {% if report.show_technician or not report %}checked{% endif %}>
+                        Include "Lab Technician / RA"
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        <input type="checkbox" name="show_scientist" {% if report.show_scientist or not report %}checked{% endif %}>
+                        Include "Research Scientist"
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        <input type="checkbox" name="show_vc" {% if report.show_vc or not report %}checked{% endif %}>
+                        Include "Signature of VC (Dr. G.C Sahoo)"
+                    </label>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--primary);">Customize Signature Info</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="text" name="prepared_by_name" class="form-control" style="font-size: 0.85rem;" 
+                               value="{% if report %}{{ report.prepared_by_name }}{% else %}Report Prepared by{% endif %}" placeholder="Prepared By Title">
+                        <input type="text" name="technician_name" class="form-control" style="font-size: 0.85rem;" 
+                               value="{% if report %}{{ report.technician_name }}{% else %}Lab Technician / RA{% endif %}" placeholder="Technician Title">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input type="text" name="scientist_name" class="form-control" style="font-size: 0.85rem;" 
+                               value="{% if report %}{{ report.scientist_name }}{% else %}Research Scientist{% endif %}" placeholder="Scientist Title">
+                        <input type="text" name="vc_title" class="form-control" style="font-size: 0.85rem;" 
+                               value="{% if report %}{{ report.vc_title }}{% else %}Signature of VC{% endif %}" placeholder="VC Title">
+                    </div>
+                    <input type="text" name="vc_name" class="form-control" style="font-size: 0.85rem;" 
+                           value="{% if report %}{{ report.vc_name }}{% else %}Dr. G.C Sahoo{% endif %}" placeholder="VC Name">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 3rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <a href="{% url 'dashboard' %}" class="btn-primary btn-accent" style="text-decoration: none; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                Cancel
+            </a>
+            <button type="submit" class="btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save Report &amp; View Preview
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RMNIHR - Daily Reporting System 2026{% endblock %}</title>
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Extra custom styles for interactive form previews */
+        .interpretation-preview-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .interpretation-preview-text.negative {
+            background-color: var(--status-negative-bg);
+            color: var(--status-negative);
+        }
+
+        .interpretation-preview-text.positive {
+            background-color: var(--status-positive-bg);
+            color: var(--status-positive);
+        }
+
+        .interpretation-preview-text.equivocal {
+            background-color: var(--status-equivocal-bg);
+            color: var(--status-equivocal);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Top Contact Bar -->
+        <div class="top-contact-bar">
+            <div class="contact-left">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    0612-2631565 or 0612-2636651
+                </span>
+                <span class="desktop-only">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    sahoo.gc@icmr.gov.in
+                </span>
+            </div>
+            
+            <div class="contact-center">
+                <strong>VIRAL RESEARCH AND DIAGNOSTIC LABORATORIES</strong>
+                <span>DEPARTMENT OF VIROLOGY</span>
+            </div>
+            
+            <div class="contact-right desktop-only">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+                Agamkuan, Patna, Bihar
+            </div>
+        </div>
+
+        <!-- Navbar -->
+        <header class="navbar">
+            <a href="{% url 'dashboard' %}" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                <div class="brand-section" style="display: flex; align-items: center; gap: 16px;">
+                    <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo">
+                    <img src="{% static 'logo2.png' %}" alt="ICMR-RMNIHR Secondary Logo" class="brand-logo">
+                </div>
+            </a>
+
+            <!-- Desktop nav buttons -->
+            <div class="nav-actions">
+                <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="{% url 'create_report' %}" class="nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Create Report
+                </a>
+            </div>
+
+            <!-- Hamburger button (mobile only) -->
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="wave-navbar"></div>
+        </header>
+
+        <!-- Mobile Nav Dropdown -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="{% url 'dashboard' %}" class="mobile-nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'create_report' %}" class="mobile-nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Create Report
+            </a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="wave-footer"></div>
+            <p>&copy; 2026 ICMR-RMNIHR - Viral Research &amp; Diagnostic Laboratories (VRDL). All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('scroll-animated');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const animateElements = document.querySelectorAll('.card, .stat-card, .test-builder-box');
+            animateElements.forEach(el => observer.observe(el));
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
