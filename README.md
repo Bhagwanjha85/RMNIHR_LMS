@@ -1,2 +1,2 @@
 # RMNIHR_LMS
-This project aim to automation and digitalize of Lab works.
+This project aim to automate and digitalize of Lab works.
