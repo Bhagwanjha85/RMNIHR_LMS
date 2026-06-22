@@ -136,6 +136,11 @@
         <div class="card" id="reports-card">
             <form method="POST" action="{% url 'bulk_delete' %}" id="bulk-delete-form">
                 {% csrf_token %}
+                <input type="hidden" name="q" value="{{ query|default:'' }}">
+                <input type="hidden" name="start_date" value="{{ start_date|default:'' }}">
+                <input type="hidden" name="end_date" value="{{ end_date|default:'' }}">
+                <input type="hidden" name="test_filter" value="{{ test_filter|default:'' }}">
+                <input type="hidden" name="select_all_matching" id="select-all-matching-input" value="false">
                 <div class="card-title" style="display:flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 12px;">
                     <div style="display:flex;align-items:center;gap:8px;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -158,6 +163,15 @@
                             Print All / Range
                         </button>
 
+                        <a href="{% url 'export_reports_excel' %}{% if query or start_date or end_date or test_filter %}?q={{ query }}&start_date={{ start_date }}&end_date={{ end_date }}&test_filter={{ test_filter }}{% endif %}" class="btn-primary" style="background-color: #16a34a; border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Download all reports as Excel sheet">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Download All
+                        </a>
+
                         <button type="submit" id="btn-delete-selected" class="btn-primary" style="background-color: var(--status-positive); border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem; opacity: 0.5;" onclick="document.getElementById('bulk-delete-form').action='{% url 'bulk_delete' %}'; return confirm('Are you sure you want to delete the selected reports?');" disabled>
                             Delete Selected
                         </button>
@@ -166,6 +180,11 @@
 
 
             <div id="reports-container" style="transition: opacity 0.3s ease;">
+                <!-- Selection Banner -->
+                <div id="selection-banner" style="display: none; background: rgba(16, 117, 189, 0.1); border: 1px solid rgba(16, 117, 189, 0.2); padding: 0.8rem 1.2rem; border-radius: 8px; margin-bottom: 1rem; align-items: center; justify-content: space-between; font-size: 0.9rem; font-weight: 500; color: var(--text-main);">
+                    <span id="selection-banner-text">All 20 reports on this page are selected.</span>
+                    <button type="button" id="btn-select-all-matching" style="background: none; border: none; color: var(--secondary); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">Select all {{ total_count }} reports</button>
+                </div>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -177,6 +196,8 @@
                                 <th>Age/Sex</th>
                                 <th>Ref By</th>
                                 <th>ELISA Tests</th>
+                                <th>RT-PCR Tests</th>
+                                <th>RAPID Tests</th>
                                 <th style="text-align: right;">Actions</th>
                             </tr>
                         </thead>
@@ -213,6 +234,7 @@
                                 <td><span class="badge"
                                         style="background-color: var(--border-color); color: var(--text-main);">{{ report.ref_by }}</span></td>
                                 <td>
+                                    {% if report.test_method|upper == 'ELISA' %}
                                     <div style="display: flex; flex-direction: column; gap: 4px;">
                                         {% for t in report.tests.all %}
                                         <div style="font-size: 0.8rem; white-space: nowrap;">
@@ -228,6 +250,45 @@
                                         </div>
                                         {% endfor %}
                                     </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.test_method|upper == 'RT-PCR' %}
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        {% for t in report.tests.all %}
+                                        <div style="font-size: 0.8rem; white-space: nowrap;">
+                                            <span style="font-weight: 500;">{{ t.test_name }}:</span>
+                                            <span style="font-weight: bold;">{{ t.result_value }}</span>
+                                            {% if t.interpretation_text == 'Positive' %}
+                                            <span style="color: var(--status-positive); font-weight: bold;">(+)</span>
+                                            {% elif t.interpretation_text == 'Negative' %}
+                                            <span style="color: var(--status-negative);">(−)</span>
+                                            {% else %}
+                                            <span style="color: var(--status-equivocal);">(±)</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.test_method|upper == 'RAPID' %}
+                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                        {% for t in report.tests.all %}
+                                        <div style="font-size: 0.8rem; white-space: nowrap;">
+                                            <span style="font-weight: 500;">{{ t.test_name }}:</span>
+                                            <span style="font-weight: bold;">{{ t.result_value }}</span>
+                                            {% if t.interpretation_text == 'Positive' %}
+                                            <span style="color: var(--status-positive); font-weight: bold;">(+)</span>
+                                            {% elif t.interpretation_text == 'Negative' %}
+                                            <span style="color: var(--status-negative);">(−)</span>
+                                            {% else %}
+                                            <span style="color: var(--status-equivocal);">(±)</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </td>
                                 <td style="text-align: right;">
                                     <div class="action-btns" style="justify-content: flex-end;">
@@ -269,7 +330,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="8"
+                                <td colspan="10"
                                     style="text-align: center; padding: 3rem; color: var(--text-muted); font-style: italic;">
                                     No reports found. Click "Create New Report" to start.
                                 </td>
@@ -348,7 +409,7 @@
         </div>
 
         <div class="card"
-            style="background: #a7a6a6; color: rgb(25, 25, 26); border: 1px solid #10388f; font-weight: 400;">
+            style="background: #e2e2e3; color: rgb(25, 25, 26); border: 1px solid #10388f; font-weight: 400;">
             <h3 style="color: rgb(10, 10, 10); font-size: 1.1rem; margin-bottom: 8px; display:flex;align-items:center;gap:8px;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -389,15 +450,20 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const selectAll = document.getElementById('select-all');
-    const checkboxes = document.querySelectorAll('.report-checkbox');
+    const totalCount = parseInt("{{ total_count }}") || 0;
+    const selectAllMatchingInput = document.getElementById('select-all-matching-input');
+    const selectionBanner = document.getElementById('selection-banner');
+    const selectionBannerText = document.getElementById('selection-banner-text');
+    const btnSelectAllMatching = document.getElementById('btn-select-all-matching');
     const btnDelete = document.getElementById('btn-delete-selected');
     const btnPrint = document.getElementById('btn-print-selected');
-    
+
     function toggleBtn() {
         const currentCheckboxes = document.querySelectorAll('.report-checkbox');
         const anyChecked = Array.from(currentCheckboxes).some(cb => cb.checked);
-        if (anyChecked) {
+        const isAllMatching = selectAllMatchingInput && selectAllMatchingInput.value === 'true';
+        
+        if (anyChecked || isAllMatching) {
             if (btnDelete) {
                 btnDelete.disabled = false;
                 btnDelete.style.opacity = '1';
@@ -417,22 +483,100 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
-    if (selectAll) {
-        selectAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            toggleBtn();
+
+    function resetAllMatching() {
+        if (selectAllMatchingInput) {
+            selectAllMatchingInput.value = 'false';
+        }
+        if (selectionBanner) {
+            selectionBanner.style.display = 'none';
+        }
+    }
+
+    function initCheckboxListeners() {
+        const selectAll = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.report-checkbox');
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                
+                if (this.checked) {
+                    if (totalCount > checkboxes.length) {
+                        selectionBannerText.innerHTML = `All ${checkboxes.length} reports on this page are selected.`;
+                        btnSelectAllMatching.innerHTML = `Select all ${totalCount} reports`;
+                        btnSelectAllMatching.style.display = 'inline-block';
+                        selectionBanner.style.display = 'flex';
+                    }
+                } else {
+                    resetAllMatching();
+                }
+                toggleBtn();
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (!this.checked) {
+                    if (selectAll) selectAll.checked = false;
+                    resetAllMatching();
+                }
+                if (Array.from(checkboxes).every(c => c.checked) && selectAll) {
+                    selectAll.checked = true;
+                    if (totalCount > checkboxes.length) {
+                        selectionBannerText.innerHTML = `All ${checkboxes.length} reports on this page are selected.`;
+                        btnSelectAllMatching.innerHTML = `Select all ${totalCount} reports`;
+                        btnSelectAllMatching.style.display = 'inline-block';
+                        selectionBanner.style.display = 'flex';
+                    }
+                }
+                toggleBtn();
+            });
         });
     }
-    
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            if (!this.checked && selectAll) selectAll.checked = false;
-            if (Array.from(checkboxes).every(c => c.checked) && selectAll) {
-                selectAll.checked = true;
+
+    if (btnSelectAllMatching) {
+        btnSelectAllMatching.addEventListener('click', function() {
+            const isAllMatching = selectAllMatchingInput.value === 'true';
+            const checkboxes = document.querySelectorAll('.report-checkbox');
+            const selectAll = document.getElementById('select-all');
+            
+            if (!isAllMatching) {
+                selectAllMatchingInput.value = 'true';
+                selectionBannerText.innerHTML = `All ${totalCount} reports in this search are selected.`;
+                btnSelectAllMatching.innerHTML = `Clear selection`;
+                if (selectAll) selectAll.checked = true;
+                checkboxes.forEach(cb => cb.checked = true);
+            } else {
+                selectAllMatchingInput.value = 'false';
+                if (selectAll) selectAll.checked = false;
+                checkboxes.forEach(cb => cb.checked = false);
+                selectionBanner.style.display = 'none';
             }
             toggleBtn();
         });
+    }
+
+    initCheckboxListeners();
+
+    // Row click selection with Event Delegation (so it handles pagination automatically)
+    document.addEventListener('click', function(e) {
+        const row = e.target.closest('.data-table tbody tr');
+        if (!row) return;
+        
+        // Ignore click on links, buttons, checkbox, or action-btns container
+        if (e.target.closest('input[type="checkbox"]') || 
+            e.target.closest('a') || 
+            e.target.closest('button') || 
+            e.target.closest('.action-btns')) {
+            return;
+        }
+        
+        const checkbox = row.querySelector('.report-checkbox');
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        }
     });
 
     // AJAX Pagination
@@ -458,24 +602,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Update URL
                         window.history.pushState({path: url}, '', url);
                         
-                        // Re-bind checkbox events since elements were replaced
-                        const newSelectAll = document.getElementById('select-all');
-                        const newCheckboxes = document.querySelectorAll('.report-checkbox');
-                        if (newSelectAll) {
-                            newSelectAll.addEventListener('change', function() {
-                                newCheckboxes.forEach(cb => cb.checked = this.checked);
-                                toggleBtn();
-                            });
-                        }
-                        newCheckboxes.forEach(cb => {
-                            cb.addEventListener('change', function() {
-                                if (!this.checked && newSelectAll) newSelectAll.checked = false;
-                                if (Array.from(newCheckboxes).every(c => c.checked) && newSelectAll) {
-                                    newSelectAll.checked = true;
-                                }
-                                toggleBtn();
-                            });
-                        });
+                        // Re-bind listeners & reset select-all-matching state
+                        resetAllMatching();
+                        initCheckboxListeners();
                         toggleBtn();
                     }
                 })
@@ -489,43 +618,52 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{% endblock %}
+
+{% block extra_body %}
 <!-- Print Range Modal -->
-<div id="print-range-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="card" style="width: 100%; max-width: 400px; padding: 2rem; margin: 1rem; opacity: 1; transform: none; animation: none;">
-        <h3 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 1.25rem;">Download / Print Reports</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Filter by Date Range, Lab ID Range, or leave blank to download all reports.</p>
+<div id="print-range-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: flex-start; justify-content: center; backdrop-filter: blur(4px); padding-top: 8vh; overflow-y: auto;">
+    <div class="card" style="width: 100%; max-width: 550px; padding: 2.5rem; margin: 1rem; opacity: 1; transform: none; animation: none; box-shadow: var(--box-shadow-hover); border: 1px solid var(--glass-border);">
+        <h3 style="margin-bottom: 0.5rem; color: var(--primary); font-size: 1.35rem; display: flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Download / Print Reports
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.8rem;">Filter by Date Range, Lab ID Range, or leave blank to download all reports.</p>
         
         <form method="POST" action="{% url 'bulk_print' %}">
             {% csrf_token %}
             <input type="hidden" name="print_all" value="true">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+            <input type="hidden" name="q" value="{{ query|default:'' }}">
+            <input type="hidden" name="test_filter" value="{{ test_filter|default:'' }}">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.2rem;">
                 <div class="form-group">
-                    <label for="modal_start_date">Start Date</label>
-                    <input type="date" name="start_date" id="modal_start_date" class="form-control">
+                    <label for="modal_start_date" style="font-weight: 600; font-size: 0.85rem;">Start Date</label>
+                    <input type="date" name="start_date" id="modal_start_date" class="form-control" value="{{ start_date|default:'' }}">
                 </div>
                 <div class="form-group">
-                    <label for="modal_end_date">End Date</label>
-                    <input type="date" name="end_date" id="modal_end_date" class="form-control">
+                    <label for="modal_end_date" style="font-weight: 600; font-size: 0.85rem;">End Date</label>
+                    <input type="date" name="end_date" id="modal_end_date" class="form-control" value="{{ end_date|default:'' }}">
                 </div>
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 2rem;">
                 <div class="form-group">
-                    <label for="modal_start_lab_id">Start Lab ID</label>
+                    <label for="modal_start_lab_id" style="font-weight: 600; font-size: 0.85rem;">Start Lab ID</label>
                     <input type="text" name="start_lab_id" id="modal_start_lab_id" class="form-control" placeholder="e.g. 1001">
                 </div>
                 <div class="form-group">
-                    <label for="modal_end_lab_id">End Lab ID</label>
+                    <label for="modal_end_lab_id" style="font-weight: 600; font-size: 0.85rem;">End Lab ID</label>
                     <input type="text" name="end_lab_id" id="modal_end_lab_id" class="form-control" placeholder="e.g. 1050">
                 </div>
             </div>
             
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" class="btn-primary btn-accent" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.5rem 1rem;" onclick="document.getElementById('print-range-modal').style.display='none';">Cancel</button>
-                <button type="submit" class="btn-primary" style="background-color: #0284c7; padding: 0.5rem 1rem;" onclick="document.getElementById('print-range-modal').style.display='none';">Download Reports</button>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn-primary btn-accent" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; border-radius: 10px;" onclick="document.getElementById('print-range-modal').style.display='none';">Cancel</button>
+                <button type="submit" class="btn-primary" style="background-color: #0284c7; padding: 0.6rem 1.2rem; border-radius: 10px;" onclick="document.getElementById('print-range-modal').style.display='none';">Download Reports</button>
             </div>
         </form>
     </div>
 </div>
-
 {% endblock %}

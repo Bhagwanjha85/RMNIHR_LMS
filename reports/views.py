@@ -5,7 +5,71 @@ from django.db.models import Q, Count
 from django.utils import timezone
 from django.http import HttpResponse
 from .models import Report, ReportTest
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
 
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    error = None
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
+            return redirect(next_url)
+        else:
+            error = "Invalid username or password."
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, 'reports/login.html', {'form': form, 'error': error})
+
+def logout_view(request):
+    if request.method == 'POST' or request.method == 'GET':
+        logout(request)
+        return redirect('login')
+
+@login_required
+def forgot_password_view(request):
+    error = None
+    success = None
+    if request.method == 'POST':
+        new_username = request.POST.get('new_username')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        user = request.user
+        
+        # Reset/Change username if provided and different
+        if new_username and new_username != user.username:
+            if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                error = "Username already taken by another account."
+            else:
+                user.username = new_username
+        
+        # Reset/Change password if provided
+        if not error and new_password:
+            if new_password != confirm_password:
+                error = "Passwords do not match."
+            else:
+                user.set_password(new_password)
+        
+        if not error:
+            user.save()
+            # Update session hash to keep user logged in after password change
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
+            success = "Account details successfully updated!"
+            
+    return render(request, 'reports/forgot_password.html', {'error': error, 'success': success})
+
+
+
+@login_required
 def dashboard(request):
     query = request.GET.get('q', '')
     start_date = request.GET.get('start_date', '')
@@ -32,10 +96,15 @@ def dashboard(request):
     # Get some quick analytics
     total_count = reports.count()
     
-    # Calculate stats for the selected list of reports
-    positive_count = ReportTest.objects.filter(report__in=reports, interpretation_text='Positive').count()
-    negative_count = ReportTest.objects.filter(report__in=reports, interpretation_text='Negative').count()
-    equivocal_count = ReportTest.objects.filter(report__in=reports, interpretation_text='Equivocal').count()
+    # Calculate stats for the selected list of reports (distinct patient report/case counts)
+    positive_reports = reports.filter(tests__interpretation_text='Positive').distinct()
+    positive_count = positive_reports.count()
+    
+    equivocal_reports = reports.filter(tests__interpretation_text='Equivocal').exclude(pk__in=positive_reports).distinct()
+    equivocal_count = equivocal_reports.count()
+    
+    negative_reports = reports.filter(tests__interpretation_text='Negative').exclude(pk__in=positive_reports).exclude(pk__in=equivocal_reports).distinct()
+    negative_count = negative_reports.count()
     
     # Top tests run
     top_tests = ReportTest.objects.filter(report__in=reports).values('test_name').annotate(count=Count('id')).order_by('-count')
@@ -71,6 +140,7 @@ def dashboard(request):
     }
     return render(request, 'reports/dashboard.html', context)
 
+@login_required
 def create_report(request):
     if request.method == 'POST':
         lab_id = request.POST.get('lab_id')
@@ -163,6 +233,7 @@ def create_report(request):
     }
     return render(request, 'reports/report_form.html', context)
 
+@login_required
 def edit_report(request, pk):
     report = get_object_or_404(Report, pk=pk)
     
@@ -237,6 +308,7 @@ def edit_report(request, pk):
     }
     return render(request, 'reports/report_form.html', context)
 
+@login_required
 def view_report(request, pk):
     report = get_object_or_404(Report.objects.prefetch_related('tests'), pk=pk)
     
@@ -256,6 +328,7 @@ def view_report(request, pk):
     }
     return render(request, 'reports/report_print.html', context)
 
+@login_required
 def view_report_bw(request, pk):
     report = get_object_or_404(Report.objects.prefetch_related('tests'), pk=pk)
     formatted_receiving_date = report.receiving_date.strftime('%d/%m/%Y')
@@ -270,6 +343,7 @@ def view_report_bw(request, pk):
     }
     return render(request, 'reports/report_print_bw.html', context)
 
+@login_required
 def delete_report(request, pk):
     report = get_object_or_404(Report, pk=pk)
     if request.method == 'POST':
@@ -278,18 +352,59 @@ def delete_report(request, pk):
     # If GET, show confirmation or redirect
     return render(request, 'reports/report_confirm_delete.html', {'report': report})
 
+@login_required
 def bulk_delete_reports(request):
     if request.method == 'POST':
-        report_ids = request.POST.getlist('report_ids')
-        if report_ids:
-            Report.objects.filter(pk__in=report_ids).delete()
+        if request.POST.get('select_all_matching') == 'true':
+            from django.db.models import Q
+            query = request.POST.get('q', '')
+            start_date = request.POST.get('start_date', '')
+            end_date = request.POST.get('end_date', '')
+            test_filter = request.POST.get('test_filter', '')
+            
+            reports = Report.objects.all()
+            
+            if query:
+                reports = reports.filter(
+                    Q(patient_name__icontains=query) |
+                    Q(lab_id__icontains=query) |
+                    Q(ref_by__icontains=query)
+                )
+            if start_date:
+                reports = reports.filter(receiving_date__gte=start_date)
+            if end_date:
+                reports = reports.filter(receiving_date__lte=end_date)
+            if test_filter:
+                reports = reports.filter(tests__test_name=test_filter).distinct()
+                
+            reports.delete()
+        else:
+            report_ids = request.POST.getlist('report_ids')
+            if report_ids:
+                Report.objects.filter(pk__in=report_ids).delete()
+        
+        # Build redirect URL with parameters preserved
+        from django.urls import reverse
+        from urllib.parse import urlencode
+        
+        params = {}
+        for key in ['q', 'start_date', 'end_date', 'test_filter']:
+            val = request.POST.get(key)
+            if val:
+                params[key] = val
+                
+        redirect_url = reverse('dashboard')
+        if params:
+            redirect_url += '?' + urlencode(params)
+        return redirect(redirect_url)
     return redirect('dashboard')
 
+@login_required
 def bulk_print_reports(request):
     if request.method == 'POST':
         from django.db.models import Q
         
-        if request.POST.get('print_all') == 'true':
+        if request.POST.get('print_all') == 'true' or request.POST.get('select_all_matching') == 'true':
             query = request.POST.get('q', '')
             start_date = request.POST.get('start_date', '')
             end_date = request.POST.get('end_date', '')
@@ -327,6 +442,7 @@ def bulk_print_reports(request):
             return render(request, 'reports/report_print_bulk.html', {'reports': reports})
     return redirect('dashboard')
 
+@login_required
 def bulk_upload(request):
     if request.method == 'POST':
         if 'excel_file' in request.FILES:
@@ -464,4 +580,115 @@ def bulk_upload(request):
             except Exception as e:
                 return HttpResponse(f"Error processing file: {str(e)}", status=400)
     return render(request, 'reports/bulk_upload.html')
+
+@login_required
+def export_reports_excel(request):
+    from django.db.models import Q
+    import openpyxl
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    
+    query = request.GET.get('q', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    test_filter = request.GET.get('test_filter', '')
+    
+    reports = Report.objects.prefetch_related('tests').all()
+    
+    if query:
+        reports = reports.filter(
+            Q(patient_name__icontains=query) |
+            Q(lab_id__icontains=query) |
+            Q(ref_by__icontains=query)
+        )
+    if start_date:
+        reports = reports.filter(receiving_date__gte=start_date)
+    if end_date:
+        reports = reports.filter(receiving_date__lte=end_date)
+    if test_filter:
+        reports = reports.filter(tests__test_name=test_filter).distinct()
+        
+    reports = reports.order_by('-created_at')
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Reports"
+    
+    meta_headers = [
+        "Lab ID", "Patient Name", "Age", "Age Unit", "Sex", 
+        "Ref By", "Sample Type", "Test Method", "Receiving Date", "Reporting Date"
+    ]
+    
+    unique_tests = sorted(list(set(
+        ReportTest.objects.filter(report__in=reports).values_list('test_name', flat=True)
+    )))
+    
+    headers = meta_headers + unique_tests
+    
+    header_fill = PatternFill(start_color="1B285C", end_color="1B285C", fill_type="solid")
+    header_font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+    center_align = Alignment(horizontal="center", vertical="center")
+    left_align = Alignment(horizontal="left", vertical="center")
+    
+    ws.append(headers)
+    for col_idx in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center_align
+        
+    thin_border = Border(
+        left=Side(style='thin', color='DDDDDD'),
+        right=Side(style='thin', color='DDDDDD'),
+        top=Side(style='thin', color='DDDDDD'),
+        bottom=Side(style='thin', color='DDDDDD')
+    )
+    
+    for r_idx, report in enumerate(reports, start=2):
+        sex_map = {'M': 'Male', 'F': 'Female', 'O': 'Other'}
+        sex_str = sex_map.get(report.sex, report.sex or '')
+        
+        recv_str = report.receiving_date.strftime('%Y-%m-%d') if report.receiving_date else ""
+        rep_str = report.reporting_date.strftime('%Y-%m-%d') if report.reporting_date else ""
+        
+        row_values = [
+            report.lab_id or "",
+            report.patient_name or "",
+            report.age_value or "",
+            report.get_age_unit_display() if report.age_value else "",
+            sex_str,
+            report.ref_by or "",
+            report.sample_type or "",
+            report.test_method or "",
+            recv_str,
+            rep_str
+        ]
+        
+        test_results = {t.test_name: t.result_value for t in report.tests.all()}
+        for test in unique_tests:
+            row_values.append(test_results.get(test, ""))
+            
+        ws.append(row_values)
+        
+        for col_idx in range(1, len(headers) + 1):
+            cell = ws.cell(row=r_idx, column=col_idx)
+            cell.alignment = left_align if col_idx == 2 else center_align
+            cell.border = thin_border
+            cell.font = Font(name="Arial", size=10)
+            
+    for col in ws.columns:
+        max_len = 0
+        col_letter = openpyxl.utils.get_column_letter(col[0].column)
+        for cell in col:
+            val = str(cell.value or '')
+            if len(val) > max_len:
+                max_len = len(val)
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+        
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response['Content-Disposition'] = f'attachment; filename="reports_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    wb.save(response)
+    return response
+
 

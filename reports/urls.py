@@ -3,6 +3,9 @@ from . import views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
     path('report/create/', views.create_report, name='create_report'),
     path('report/<int:pk>/', views.view_report, name='view_report'),
     path('report/<int:pk>/edit/', views.edit_report, name='edit_report'),
@@ -11,4 +14,5 @@ urlpatterns = [
     path('bulk-upload/', views.bulk_upload, name='bulk_upload'),
     path('bulk-delete/', views.bulk_delete_reports, name='bulk_delete'),
     path('bulk-print/', views.bulk_print_reports, name='bulk_print'),
+    path('export-excel/', views.export_reports_excel, name='export_reports_excel'),
 ]

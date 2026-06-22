@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login - RMNIHR Reporting System{% endblock %}
+{% block content %}
+<style>
+    /* Full screen login viewport */
+    .login-viewport {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b132b;
+        overflow: hidden;
+    }
+
+    /* ─── Background VIDEO ─── */
+    .login-bg-video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        z-index: 1;
+        /* darken + saturate to keep card text readable */
+        filter: brightness(0.38) contrast(1.1) saturate(1.3);
+        pointer-events: none;
+    }
+
+    /* Dark overlay on top of the video for extra contrast */
+    .login-video-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            135deg,
+            rgba(7, 14, 40, 0.55) 0%,
+            rgba(11, 19, 43, 0.45) 100%
+        );
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    /* Ambient glow orbs */
+    .login-glow-1 {
+        position: absolute;
+        top: -15%;
+        left: -10%;
+        width: 55%;
+        height: 55%;
+        background: radial-gradient(circle, rgba(16, 117, 189, 0.18) 0%, rgba(0,0,0,0) 70%);
+        z-index: 3;
+        pointer-events: none;
+    }
+    .login-glow-2 {
+        position: absolute;
+        bottom: -15%;
+        right: -10%;
+        width: 55%;
+        height: 55%;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, rgba(0,0,0,0) 70%);
+        z-index: 3;
+        pointer-events: none;
+    }
+
+    /* ─── Glassmorphic card ─── */
+    .login-glass-card {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 450px;
+        background: rgba(235, 234, 234, 0.943);
+        backdrop-filter: blur(32px) saturate(200%);
+        -webkit-backdrop-filter: blur(32px) saturate(200%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 22px;
+        padding: 3rem 2.6rem;
+        box-shadow:
+            0 30px 60px -12px rgba(100, 99, 99, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        animation: loginFadeUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        margin: 1.5rem;
+    }
+
+    @keyframes loginFadeUp {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo */
+    .login-header-logo { text-align: center; margin-bottom: 1.25rem; }
+    .login-logo-img {
+        height: 85px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.25));
+    }
+
+    /* Live clock bar inside login card */
+    .login-clock-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #1075bd, #0c4a6e);
+        border-radius: 10px;
+        padding: 0.55rem 1rem;
+        margin-bottom: 1.25rem;
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        box-shadow: 0 4px 14px rgba(16, 117, 189, 0.3);
+    }
+
+    /* Title */
+    .login-title-h1 {
+        font-size: 1.85rem;
+        font-weight: 800;
+        text-align: center;
+        margin: 0 0 0.4rem;
+        color: #0c2461;
+        letter-spacing: -0.5px;
+    }
+    .login-subtitle-p {
+        text-align: center;
+        color: #4a5568;
+        font-size: 0.92rem;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+
+    /* Divider */
+    .login-divider {
+        border: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        margin: 0 0 1.5rem;
+    }
+
+    /* Field labels */
+    .login-label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.45rem;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    /* Inputs — dark text on light card bg for max readability */
+    .login-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1.5px solid rgba(16, 117, 189, 0.35);
+        border-radius: 12px;
+        padding: 0.88rem 1rem;
+        color: #1a202c;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.22s ease;
+        outline: none;
+    }
+    .login-input:focus {
+        background: #ffffff;
+        border-color: #1075bd;
+        box-shadow: 0 0 0 4px rgba(16, 117, 189, 0.18);
+    }
+    .login-input::placeholder { color: #a0aec0; }
+
+    .login-field-group { margin-bottom: 1.4rem; }
+
+    /* Submit button */
+    .login-btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #1075bd 0%, #0c4a6e 100%);
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 0.95rem;
+        cursor: pointer;
+        transition: all 0.28s ease;
+        margin-top: 0.6rem;
+        box-shadow: 0 5px 22px rgba(16, 117, 189, 0.35);
+    }
+    .login-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(56, 189, 248, 0.48);
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    }
+    .login-btn-submit:active { transform: translateY(0); }
+
+    /* Error alert */
+    .login-error-alert {
+        background: rgba(239, 68, 68, 0.22);
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        color: #fca5a5;
+        padding: 0.85rem 1rem;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        margin-bottom: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Logged-in user badge (shows username in top-right corner of card) */
+    .login-user-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1.2rem;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.55);
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<div class="login-viewport">
+
+    <!-- ── Looping video background ── -->
+    <video class="login-bg-video" autoplay muted loop playsinline>
+        <source src="{% static 'login.mp4' %}" type="video/mp4">
+        <!-- Fallback: solid dark colour if video fails to load -->
+    </video>
+
+    <!-- Overlay + glow orbs -->
+    <div class="login-video-overlay"></div>
+    <div class="login-glow-1"></div>
+    <div class="login-glow-2"></div>
+
+    <!-- Glass card -->
+    <div class="login-glass-card">
+
+        <div class="login-header-logo">
+            <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="login-logo-img">
+        </div>
+
+        <h1 class="login-title-h1">ICMR – RMNIHR</h1>
+        <p class="login-subtitle-p">VRDL Diagnostic Reporting System, Patna</p>
+
+        <!-- Live date & time bar -->
+        <div class="login-clock-bar" id="login-clock-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="login-clock-text">Loading...</span>
+        </div>
+
+        <hr class="login-divider">
+
+        {% if error %}
+        <div class="login-error-alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+
+            <div class="login-field-group">
+                <label class="login-label" for="username">Username</label>
+                <input class="login-input" type="text" id="username" name="username"
+                       placeholder="Enter your username" required autocomplete="username">
+            </div>
+
+            <div class="login-field-group" style="margin-bottom: 1.8rem;">
+                <label class="login-label" for="password">Password</label>
+                <input class="login-input" type="password" id="password" name="password"
+                       placeholder="Enter your password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="login-btn-submit">SIGN IN →</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    (function () {
+        function updateLoginClock() {
+            var el = document.getElementById('login-clock-text');
+            if (!el) return;
+            var now = new Date();
+            var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var day = days[now.getDay()];
+            var date = now.getDate();
+            var month = months[now.getMonth()];
+            var year = now.getFullYear();
+            var h = now.getHours();
+            var m = String(now.getMinutes()).padStart(2, '0');
+            var s = String(now.getSeconds()).padStart(2, '0');
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            el.textContent = day + ', ' + date + ' ' + month + ' ' + year + '  |  ' + h + ':' + m + ':' + s + ' ' + ampm;
+        }
+        updateLoginClock();
+        setInterval(updateLoginClock, 1000);
+    })();
+</script>
+
+<script>
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); return false; });
+    document.addEventListener('keydown', function (e) {
+        if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+            (e.ctrlKey && ['U','S','P'].includes(e.key.toUpperCase()))
+        ) { e.preventDefault(); return false; }
+    });
+</script>
+{% endblock %}

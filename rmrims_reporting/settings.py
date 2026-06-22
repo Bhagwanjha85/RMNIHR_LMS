@@ -94,6 +94,12 @@ if DATABASE_URL:
         conn_max_age=600,
         conn_health_checks=True,
     )
+    # Force SSL mode for PostgreSQL databases in production/remote setups
+    if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql' or 'postgresql' in DATABASES['default']['ENGINE']:
+        DATABASES['default']['OPTIONS'] = {
+            'sslmode': 'require',
+        }
+
 
 
 # Password validation
@@ -160,4 +166,13 @@ else:
         firebase_admin.initialize_app()
     except Exception as e:
         print(f"Warning: Firebase Admin SDK failed to initialize: {e}")
+
+
+# Session & Authentication Configuration
+SESSION_COOKIE_AGE = 2400  # 40 minutes in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # reset the 40-minute timer on every request/action
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+
 
