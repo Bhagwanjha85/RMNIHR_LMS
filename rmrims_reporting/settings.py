@@ -175,4 +175,11 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
-
+# ─── Email Configuration (Brevo SMTP for OTP password reset) ───
+EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST         = 'smtp-relay.brevo.com'
+EMAIL_PORT         = 587
+EMAIL_USE_TLS      = True
+EMAIL_HOST_USER    = os.environ.get('BREVO_FROM_EMAIL', '')   # Your Brevo login email
+EMAIL_HOST_PASSWORD = os.environ.get('BREVO_SMTP_KEY', '')    # Brevo SMTP key (not account password)
+DEFAULT_FROM_EMAIL = os.environ.get('BREVO_FROM_EMAIL', 'noreply@rmnihr.in')

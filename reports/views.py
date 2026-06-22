@@ -68,6 +68,106 @@ def forgot_password_view(request):
     return render(request, 'reports/forgot_password.html', {'error': error, 'success': success})
 
 
+# ─── OTP Password Reset (accessible without login, for Brevo email OTP) ───
+import random
+from django.core.mail import send_mail
+from django.conf import settings as django_settings
+
+def password_reset_otp_view(request):
+    """3-step OTP password reset via Brevo SMTP. No login required."""
+    step = request.session.get('otp_step', 1)
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        # ── STEP 1: Send OTP to email ──
+        if action == 'send_otp':
+            email = request.POST.get('email', '').strip()
+            try:
+                user = User.objects.get(email=email)
+                otp = str(random.randint(100000, 999999))
+                request.session['otp_code']  = otp
+                request.session['otp_email'] = email
+                request.session['otp_step']  = 2
+                import time
+                request.session['otp_time']  = int(time.time())
+
+                send_mail(
+                    subject='RMNIHR VRDL – Password Reset OTP',
+                    message=(
+                        f"Dear {user.get_full_name() or user.username},\n\n"
+                        f"Your OTP for password reset is:\n\n"
+                        f"  {otp}\n\n"
+                        f"This OTP expires in 10 minutes.\n"
+                        f"Do not share it with anyone.\n\n"
+                        f"– ICMR RMNIHR VRDL System"
+                    ),
+                    from_email=django_settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+                step = 2
+            except User.DoesNotExist:
+                error = "No account found with this email address."
+                step = 1
+            except Exception as e:
+                error = f"Could not send OTP. Please try again. ({str(e)[:80]})"
+                step = 1
+
+        # ── STEP 2: Verify OTP ──
+        elif action == 'verify_otp':
+            import time
+            entered = request.POST.get('otp', '').strip()
+            stored  = request.session.get('otp_code', '')
+            sent_at = request.session.get('otp_time', 0)
+            if int(time.time()) - sent_at > 600:  # 10 minutes
+                error = "OTP has expired. Please request a new one."
+                step = 1
+                for k in ['otp_code', 'otp_email', 'otp_step', 'otp_time', 'otp_verified']:
+                    request.session.pop(k, None)
+            elif entered == stored:
+                request.session['otp_verified'] = True
+                request.session['otp_step'] = 3
+                step = 3
+            else:
+                error = "Invalid OTP. Please try again."
+                step = 2
+
+        # ── STEP 3: Set new password ──
+        elif action == 'reset_password':
+            if request.session.get('otp_verified'):
+                new_pw  = request.POST.get('new_password', '')
+                conf_pw = request.POST.get('confirm_password', '')
+                if len(new_pw) < 8:
+                    error = "Password must be at least 8 characters."
+                    step = 3
+                elif new_pw != conf_pw:
+                    error = "Passwords do not match."
+                    step = 3
+                else:
+                    try:
+                        user = User.objects.get(email=request.session.get('otp_email', ''))
+                        user.set_password(new_pw)
+                        user.save()
+                        for k in ['otp_code', 'otp_email', 'otp_step', 'otp_time', 'otp_verified']:
+                            request.session.pop(k, None)
+                        success = "Password reset successful! You can now log in."
+                        step = 1
+                    except User.DoesNotExist:
+                        error = "Session error. Please start again."
+                        step = 1
+            else:
+                error = "Session expired. Please start again."
+                step = 1
+
+    return render(request, 'reports/password_reset_otp.html', {
+        'step': step,
+        'error': error,
+        'success': success,
+    })
+
 
 @login_required
 def dashboard(request):
