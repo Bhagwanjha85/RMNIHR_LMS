@@ -15,18 +15,27 @@ def login_view(request):
         return redirect('dashboard')
     error = None
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+        username_input = request.POST.get('username', '').strip()
+        password_input = request.POST.get('password', '').strip()
+        
+        # Check if login input is an email, search for corresponding username
+        username_to_auth = username_input
+        if '@' in username_input:
+            try:
+                user_obj = User.objects.get(email=username_input)
+                username_to_auth = user_obj.username
+            except User.DoesNotExist:
+                pass
+                
+        user = authenticate(request, username=username_to_auth, password=password_input)
+        if user is not None:
             login(request, user)
             next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
             return redirect(next_url)
         else:
-            error = "Invalid username or password."
-    else:
-        form = AuthenticationForm()
-    
-    return render(request, 'reports/login.html', {'form': form, 'error': error})
+            error = "Invalid username/email or password."
+            
+    return render(request, 'reports/login.html', {'error': error})
 
 def logout_view(request):
     if request.method == 'POST' or request.method == 'GET':
