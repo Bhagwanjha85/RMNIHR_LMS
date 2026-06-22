@@ -1,0 +1,3 @@
+# Ignore all Django HTML templates - Prettier breaks {{ }} and {% %} template tags
+templates/
+*.html

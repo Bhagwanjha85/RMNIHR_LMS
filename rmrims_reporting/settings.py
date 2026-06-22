@@ -145,3 +145,19 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# Firebase Admin SDK Initialization
+import firebase_admin
+from firebase_admin import credentials
+
+cred_path = os.path.join(BASE_DIR, 'firebase_credentials.json')
+
+if os.path.exists(cred_path):
+    cred = credentials.Certificate(cred_path)
+    firebase_admin.initialize_app(cred)
+else:
+    try:
+        firebase_admin.initialize_app()
+    except Exception as e:
+        print(f"Warning: Firebase Admin SDK failed to initialize: {e}")
+
