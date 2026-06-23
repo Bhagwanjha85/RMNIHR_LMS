@@ -177,7 +177,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # ─── Email Configuration (Brevo SMTP for OTP password reset) ───
 BREVO_SMTP_KEY = os.environ.get('BREVO_SMTP_KEY', '')
-BREVO_FROM_EMAIL = os.environ.get('BREVO_FROM_EMAIL', 'bk.jha.3297@gmail.com')
+BREVO_FROM_EMAIL = os.environ.get('BREVO_FROM_EMAIL', 'noreply@rmnihr.in')
 
 if BREVO_SMTP_KEY:
     EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'

@@ -17,7 +17,7 @@ import os
 from django.contrib.auth.models import User
 username = os.environ.get('ADMIN_USERNAME', 'admin')
 password = os.environ.get('ADMIN_PASSWORD', 'AdminPassword123')
-email    = os.environ.get('ADMIN_EMAIL', 'bk.jha.3297@gmail.com')
+email    = os.environ.get('ADMIN_EMAIL', 'admin@rmnihr.in')
 if username and password:
     user, created = User.objects.get_or_create(username=username)
     user.email       = email
