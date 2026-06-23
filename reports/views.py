@@ -20,30 +20,73 @@ def login_view(request):
         
         user = authenticate(request, username=username_input, password=password_input)
         if user is not None:
-            from django.contrib.sessions.models import Session
-            from django.utils import timezone
+            # ─── Geofencing Location Validation (Max 300 meters from RMNIHR) ───
+            latitude_str = request.POST.get('latitude', '').strip()
+            longitude_str = request.POST.get('longitude', '').strip()
             
-            try:
-                Session.objects.filter(expire_date__lt=timezone.now()).delete()
-            except Exception:
-                pass
-                
-            active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
-            logged_in_count = 0
-            for s in active_sessions:
+            import math
+            from django.conf import settings
+            
+            TARGET_LAT = 25.599400
+            TARGET_LON = 85.197308
+            MAX_DISTANCE_METERS = 300.0
+            
+            location_ok = True
+            
+            if not latitude_str or not longitude_str:
+                if not settings.DEBUG:
+                    error = "Location access is required to log in. Please enable location services and share your location."
+                    location_ok = False
+            else:
                 try:
-                    data = s.get_decoded()
-                    if '_auth_user_id' in data:
-                        logged_in_count += 1
+                    lat = float(latitude_str)
+                    lon = float(longitude_str)
+                    
+                    # Haversine formula to compute distance in meters
+                    R = 6371000.0  # Earth's radius in meters
+                    phi1 = math.radians(TARGET_LAT)
+                    phi2 = math.radians(lat)
+                    delta_phi = math.radians(lat - TARGET_LAT)
+                    delta_lon = math.radians(lon - TARGET_LON)
+                    
+                    a = math.sin(delta_phi / 2.0)**2 + \
+                        math.cos(phi1) * math.cos(phi2) * \
+                        math.sin(delta_lon / 2.0)**2
+                    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+                    distance = R * c
+                    
+                    if distance > MAX_DISTANCE_METERS:
+                        error = f"Access Denied: You are {round(distance)} meters away. Access is restricted to 300 meters from the RMNIHR office."
+                        location_ok = False
+                except ValueError:
+                    error = "Invalid location format received."
+                    location_ok = False
+            
+            if location_ok:
+                from django.contrib.sessions.models import Session
+                from django.utils import timezone
+                
+                try:
+                    Session.objects.filter(expire_date__lt=timezone.now()).delete()
                 except Exception:
                     pass
-            
-            if logged_in_count >= 6:
-                error = "Maximum limit of 6 active logged-in users/sessions has been reached. Please try again later."
-            else:
-                login(request, user)
-                next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
-                return redirect(next_url)
+                    
+                active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+                logged_in_count = 0
+                for s in active_sessions:
+                    try:
+                        data = s.get_decoded()
+                        if '_auth_user_id' in data:
+                            logged_in_count += 1
+                    except Exception:
+                        pass
+                
+                if logged_in_count >= 6:
+                    error = "Maximum limit of 6 active logged-in users/sessions has been reached. Please try again later."
+                else:
+                    login(request, user)
+                    next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
+                    return redirect(next_url)
         else:
             error = "Invalid username or password."
             
