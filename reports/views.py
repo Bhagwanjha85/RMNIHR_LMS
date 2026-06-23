@@ -132,7 +132,7 @@ def send_brevo_otp_email(email, username, otp):
 
 def password_reset_otp_view(request):
     """3-step OTP password reset via Brevo SMTP/HTTP API. No login required."""
-    if request.GET.get('reset') == '1':
+    if request.method == 'GET' and request.GET.get('reset') == '1':
         for k in ['otp_code', 'otp_email', 'otp_step', 'otp_time', 'otp_verified']:
             request.session.pop(k, None)
             
