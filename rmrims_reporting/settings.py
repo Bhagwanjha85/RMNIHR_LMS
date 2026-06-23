@@ -169,8 +169,8 @@ else:
 
 
 # Session & Authentication Configuration
-SESSION_COOKIE_AGE = 2400  # 40 minutes in seconds
-SESSION_SAVE_EVERY_REQUEST = True  # reset the 40-minute timer on every request/action
+SESSION_COOKIE_AGE = 5400  # 1.5 hours (90 minutes) in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # reset the 1.5-hour timer on every request/action
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'

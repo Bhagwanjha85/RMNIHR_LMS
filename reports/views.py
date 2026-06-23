@@ -20,9 +20,32 @@ def login_view(request):
         
         user = authenticate(request, username=username_input, password=password_input)
         if user is not None:
-            login(request, user)
-            next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
-            return redirect(next_url)
+            # Check concurrent user sessions limit (max 6 active logged-in sessions)
+            from django.contrib.sessions.models import Session
+            from django.utils import timezone
+            
+            # Clean up expired sessions first to ensure accurate count
+            try:
+                Session.objects.filter(expire_date__lt=timezone.now()).delete()
+            except Exception:
+                pass
+                
+            active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+            logged_in_count = 0
+            for s in active_sessions:
+                try:
+                    data = s.get_decoded()
+                    if '_auth_user_id' in data:
+                        logged_in_count += 1
+                except Exception:
+                    pass
+            
+            if logged_in_count >= 6:
+                error = "Maximum limit of 6 active logged-in users/sessions has been reached. Please try again later."
+            else:
+                login(request, user)
+                next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
+                return redirect(next_url)
         else:
             error = "Invalid username or password."
             
