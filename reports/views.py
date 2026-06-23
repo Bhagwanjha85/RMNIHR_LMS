@@ -147,7 +147,10 @@ def password_reset_otp_view(request):
         if action == 'send_otp':
             email = request.POST.get('email', '').strip()
             try:
-                user = User.objects.get(email__iexact=email)
+                users = User.objects.filter(email__iexact=email, is_active=True).order_by('-is_superuser', '-is_staff')
+                if not users.exists():
+                    raise User.DoesNotExist()
+                user = users.first()
                 otp = str(random.randint(100000, 999999))
                 request.session['otp_code']  = otp
                 request.session['otp_email'] = email
@@ -201,7 +204,11 @@ def password_reset_otp_view(request):
                     step = 3
                 else:
                     try:
-                        user = User.objects.get(email=request.session.get('otp_email', ''))
+                        email_addr = request.session.get('otp_email', '')
+                        users = User.objects.filter(email__iexact=email_addr, is_active=True).order_by('-is_superuser', '-is_staff')
+                        if not users.exists():
+                            raise User.DoesNotExist()
+                        user = users.first()
                         user.set_password(new_pw)
                         user.save()
                         for k in ['otp_code', 'otp_email', 'otp_step', 'otp_time', 'otp_verified']:
