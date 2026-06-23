@@ -79,11 +79,68 @@ def forgot_password_view(request):
 
 # ─── OTP Password Reset (accessible without login, for Brevo email OTP) ───
 import random
-from django.core.mail import send_mail
+import json
+import urllib.request
+import urllib.error
 from django.conf import settings as django_settings
 
+def send_brevo_otp_email(email, username, otp):
+    key = getattr(django_settings, 'BREVO_SMTP_KEY', '')
+    from_email = getattr(django_settings, 'BREVO_FROM_EMAIL', 'noreply@rmnihr.in')
+    
+    if key:
+        url = 'https://api.brevo.com/v3/smtp/email'
+        headers = {
+            'accept': 'application/json',
+            'api-key': key,
+            'content-type': 'application/json'
+        }
+        data = {
+            "sender": {
+                "name": "ICMR-RMNIHR VRDL",
+                "email": from_email
+            },
+            "to": [
+                {
+                    "email": email,
+                    "name": username
+                }
+            ],
+            "subject": "RMNIHR VRDL – Password Reset OTP",
+            "textContent": (
+                f"Dear {username},\n\n"
+                f"Your OTP for password reset is:\n\n"
+                f"  {otp}\n\n"
+                f"This OTP expires in 10 minutes.\n"
+                f"Do not share it with anyone.\n\n"
+                f"– ICMR RMNIHR VRDL System"
+            )
+        }
+        
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(data).encode('utf-8'), 
+            headers=headers, 
+            method='POST'
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                response.read()
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            raise Exception(f"Brevo API error: {e.code} - {error_body}")
+        except Exception as e:
+            raise Exception(f"Failed to connect to Brevo API: {str(e)}")
+    else:
+        # Console fallback for local testing
+        print("\n" + "="*50)
+        print("LOCAL DEVELOPER OTP EMAIL PREVIEW:")
+        print(f"To: {email}")
+        print(f"OTP Code: {otp}")
+        print("="*50 + "\n")
+
 def password_reset_otp_view(request):
-    """3-step OTP password reset via Brevo SMTP. No login required."""
+    """3-step OTP password reset via Brevo SMTP/HTTP API. No login required."""
     step = request.session.get('otp_step', 1)
     error = None
     success = None
@@ -103,19 +160,11 @@ def password_reset_otp_view(request):
                 import time
                 request.session['otp_time']  = int(time.time())
 
-                send_mail(
-                    subject='RMNIHR VRDL – Password Reset OTP',
-                    message=(
-                        f"Dear {user.get_full_name() or user.username},\n\n"
-                        f"Your OTP for password reset is:\n\n"
-                        f"  {otp}\n\n"
-                        f"This OTP expires in 10 minutes.\n"
-                        f"Do not share it with anyone.\n\n"
-                        f"– ICMR RMNIHR VRDL System"
-                    ),
-                    from_email=django_settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    fail_silently=False,
+                # Send using the bulletproof Brevo HTTP API (Port 443)
+                send_brevo_otp_email(
+                    email=email,
+                    username=user.get_full_name() or user.username,
+                    otp=otp
                 )
                 step = 2
             except User.DoesNotExist:
