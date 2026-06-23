@@ -8,7 +8,7 @@
     style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
     <div>
         <h2 style="font-size: 1.8rem; font-weight: 800; margin: 0;">LMS Diagnostic Dashboard</h2>
-        <p style="color: var(--text-muted); margin-top: 4px;">Manage and print patient different test reports</p>
+        <p style="color: var(--text-muted); margin-top: 4px;">Manage and print patient test reports</p>
     </div>
     <div style="display: flex; gap: 10px;">
         <a href="{% url 'bulk_upload' %}" class="btn-primary btn-accent" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 8px; padding: 0.6rem 1rem;">
@@ -160,7 +160,7 @@
                         </button>
                         
                         <button type="button" class="btn-primary" style="background-color: #0284c7; border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('print-range-modal').style.display='flex';" title="Print all records or filter by range">
-                            Print All / Range
+                            Print by Range
                         </button>
 
                         <a href="{% url 'export_reports_excel' %}{% if query or start_date or end_date or test_filter %}?q={{ query }}&start_date={{ start_date }}&end_date={{ end_date }}&test_filter={{ test_filter }}{% endif %}" class="btn-primary" style="background-color: #16a34a; border:none; padding: 0.4rem 0.8rem; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Download all reports as Excel sheet">

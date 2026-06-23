@@ -20,11 +20,9 @@ def login_view(request):
         
         user = authenticate(request, username=username_input, password=password_input)
         if user is not None:
-            # Check concurrent user sessions limit (max 6 active logged-in sessions)
             from django.contrib.sessions.models import Session
             from django.utils import timezone
             
-            # Clean up expired sessions first to ensure accurate count
             try:
                 Session.objects.filter(expire_date__lt=timezone.now()).delete()
             except Exception:
