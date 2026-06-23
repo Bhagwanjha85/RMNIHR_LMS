@@ -202,18 +202,22 @@ def dashboard(request):
     if test_filter:
         reports = reports.filter(tests__test_name=test_filter).distinct()
         
-    # Get some quick analytics
+    # Get some quick analytics in a single optimized query using conditional aggregation
+    # This avoids multiple nested subqueries (exclude pk__in) which slow down databases as they grow.
+    stats = reports.annotate(
+        is_pos=Count('tests', filter=Q(tests__interpretation_text='Positive')),
+        is_eq=Count('tests', filter=Q(tests__interpretation_text='Equivocal')),
+        is_neg=Count('tests', filter=Q(tests__interpretation_text='Negative'))
+    ).aggregate(
+        pos_cnt=Count('id', filter=Q(is_pos__gt=0)),
+        eq_cnt=Count('id', filter=Q(is_pos=0, is_eq__gt=0)),
+        neg_cnt=Count('id', filter=Q(is_pos=0, is_eq=0, is_neg__gt=0))
+    )
+    
     total_count = reports.count()
-    
-    # Calculate stats for the selected list of reports (distinct patient report/case counts)
-    positive_reports = reports.filter(tests__interpretation_text='Positive').distinct()
-    positive_count = positive_reports.count()
-    
-    equivocal_reports = reports.filter(tests__interpretation_text='Equivocal').exclude(pk__in=positive_reports).distinct()
-    equivocal_count = equivocal_reports.count()
-    
-    negative_reports = reports.filter(tests__interpretation_text='Negative').exclude(pk__in=positive_reports).exclude(pk__in=equivocal_reports).distinct()
-    negative_count = negative_reports.count()
+    positive_count = stats['pos_cnt']
+    equivocal_count = stats['eq_cnt']
+    negative_count = stats['neg_cnt']
     
     # Top tests run
     top_tests = ReportTest.objects.filter(report__in=reports).values('test_name').annotate(count=Count('id')).order_by('-count')

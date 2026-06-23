@@ -8,16 +8,16 @@ class Report(models.Model):
         ('O', 'Other'),
     ]
     
-    lab_id = models.CharField(max_length=50, verbose_name="Lab ID -S-", blank=True, null=True)
+    lab_id = models.CharField(max_length=50, verbose_name="Lab ID -S-", blank=True, null=True, db_index=True)
     sample_type = models.CharField(max_length=50, default="BLOOD", blank=True, null=True)
-    patient_name = models.CharField(max_length=150, blank=True, null=True)
-    receiving_date = models.DateField(default=timezone.now, blank=True, null=True)
+    patient_name = models.CharField(max_length=150, blank=True, null=True, db_index=True)
+    receiving_date = models.DateField(default=timezone.now, blank=True, null=True, db_index=True)
     reporting_date = models.DateField(default=timezone.now, blank=True, null=True)
     
     age_value = models.IntegerField(default=0, blank=True, null=True)
     age_unit = models.CharField(max_length=10, choices=[('Y', 'Years'), ('M', 'Months'), ('D', 'Days')], default='Y', blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, default='F', blank=True, null=True)
-    ref_by = models.CharField(max_length=150, default="", blank=True, null=True)
+    ref_by = models.CharField(max_length=150, default="", blank=True, null=True, db_index=True)
     test_method = models.CharField(max_length=100, default="ELISA", blank=True, null=True)
     
     # Bottom Note
@@ -37,7 +37,7 @@ class Report(models.Model):
     vc_name = models.CharField(max_length=100, default="Dr. G.C Sahoo")
     vc_title = models.CharField(max_length=100, default="Signature of VC")
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
