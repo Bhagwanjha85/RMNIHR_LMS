@@ -95,7 +95,7 @@ def password_reset_otp_view(request):
         if action == 'send_otp':
             email = request.POST.get('email', '').strip()
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(email__iexact=email)
                 otp = str(random.randint(100000, 999999))
                 request.session['otp_code']  = otp
                 request.session['otp_email'] = email
