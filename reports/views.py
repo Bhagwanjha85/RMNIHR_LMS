@@ -13,12 +13,6 @@ from django.contrib.auth.models import User
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-        
-    # Clear any password reset OTP session variables when visiting the login page
-    if request.method == 'GET':
-        for k in ['otp_code', 'otp_email', 'otp_step', 'otp_time', 'otp_verified']:
-            request.session.pop(k, None)
-            
     error = None
     if request.method == 'POST':
         username_input = request.POST.get('username', '').strip()
