@@ -18,22 +18,13 @@ def login_view(request):
         username_input = request.POST.get('username', '').strip()
         password_input = request.POST.get('password', '').strip()
         
-        # Check if login input is an email, search for corresponding username
-        username_to_auth = username_input
-        if '@' in username_input:
-            try:
-                user_obj = User.objects.get(email=username_input)
-                username_to_auth = user_obj.username
-            except User.DoesNotExist:
-                pass
-                
-        user = authenticate(request, username=username_to_auth, password=password_input)
+        user = authenticate(request, username=username_input, password=password_input)
         if user is not None:
             login(request, user)
             next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
             return redirect(next_url)
         else:
-            error = "Invalid username/email or password."
+            error = "Invalid username or password."
             
     return render(request, 'reports/login.html', {'error': error})
 
