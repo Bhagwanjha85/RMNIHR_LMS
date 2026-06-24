@@ -11,7 +11,7 @@ python manage.py collectstatic --noinput
 # Run migrations
 python manage.py migrate
 
-# Create or update admin user (always syncs password from env vars or defaults)
+# Create admin user if not exists (only sets password on creation to avoid overwriting user changes)
 python manage.py shell -c "
 import os
 from django.contrib.auth.models import User
@@ -20,13 +20,15 @@ password = os.environ.get('ADMIN_PASSWORD', 'AdminPassword123')
 email    = os.environ.get('ADMIN_EMAIL', 'admin@rmnihr.in')
 if username and password:
     user, created = User.objects.get_or_create(username=username)
-    user.email       = email
-    user.is_staff    = True
-    user.is_superuser = True
-    user.set_password(password)
-    user.save()
-    action = 'created' if created else 'updated'
-    print(f'Admin user [{username}] {action} successfully with email {email}.')
+    if created:
+        user.email       = email
+        user.is_staff    = True
+        user.is_superuser = True
+        user.set_password(password)
+        user.save()
+        print(f'Admin user [{username}] created successfully with email {email}.')
+    else:
+        print(f'Admin user [{username}] already exists. Keeping existing credentials.')
 else:
     print('ADMIN_USERNAME or ADMIN_PASSWORD not set — skipping admin setup.')
 "

@@ -291,8 +291,6 @@
         <form method="POST" action="{% url 'login' %}" id="login-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
-            <input type="hidden" id="latitude" name="latitude">
-            <input type="hidden" id="longitude" name="longitude">
 
             <!-- fields grid (username & password side by side) -->
             <div class="login-fields-grid">
@@ -358,86 +356,5 @@
             (e.ctrlKey && ['U','S','P'].includes(e.key.toUpperCase()))
         ) { e.preventDefault(); return false; }
     });
-</script>
-
-<script>
-    document.getElementById('login-form').addEventListener('submit', function (e) {
-        var latInput = document.getElementById('latitude');
-        var lonInput = document.getElementById('longitude');
-        
-        // If location is already captured, submit the form normally
-        if (latInput.value && lonInput.value) {
-            return;
-        }
-        
-        // Prevent form submission to fetch location coordinates first
-        e.preventDefault();
-        
-        var form = this;
-        var submitBtn = form.querySelector('.login-btn-submit');
-        var originalBtnHTML = submitBtn.innerHTML;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'VERIFYING LOCATION...';
-        
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function (position) {
-                    latInput.value = position.coords.latitude;
-                    lonInput.value = position.coords.longitude;
-                    form.submit();
-                },
-                function (error) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalBtnHTML;
-                    
-                    var errorMessage = "Location access is required to log in. Please allow location access.";
-                    if (error.code === error.PERMISSION_DENIED) {
-                        errorMessage = "Location permission denied. Please allow location access in your browser settings to log in.";
-                    } else if (error.code === error.POSITION_UNAVAILABLE) {
-                        errorMessage = "Location unavailable. Please make sure your device GPS/location settings are turned on.";
-                    } else if (error.code === error.TIMEOUT) {
-                        errorMessage = "Location request timed out. Please try signing in again.";
-                    }
-                    
-                    showCustomError(errorMessage);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 8000,
-                    maximumAge: 0
-                }
-            );
-        } else {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnHTML;
-            showCustomError("Your browser does not support Geolocation. Please use a modern web browser.");
-        }
-    });
-
-    function showCustomError(message) {
-        // Clear any existing error alert blocks
-        var activeAlerts = document.querySelectorAll('.login-error-alert');
-        activeAlerts.forEach(function (alert) {
-            alert.remove();
-        });
-        
-        var alertDiv = document.createElement('div');
-        alertDiv.className = 'login-error-alert';
-        alertDiv.style.marginBottom = '1.5rem';
-        alertDiv.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            ${message}
-        `;
-        
-        var form = document.getElementById('login-form');
-        form.parentNode.insertBefore(alertDiv, form);
-    }
 </script>
 {% endblock %}
