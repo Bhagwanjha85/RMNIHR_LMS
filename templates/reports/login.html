@@ -466,10 +466,6 @@
                         latInput.value = lat;
                         lonInput.value = lon;
 
-                        sessionStorage.setItem('location_verified', 'true');
-                        sessionStorage.setItem('verified_lat', lat);
-                        sessionStorage.setItem('verified_lon', lon);
-
                         checkSection.style.display = 'none';
                         formSection.style.display = 'block';
                     }
@@ -497,28 +493,6 @@
         }
 
         verifyBtn.addEventListener('click', verifyLocation);
-
-        var backendError = "{% if error %}{{ error|escapejs }}{% endif %}";
-        if (backendError.indexOf("outside the RMNIHR Campus") !== -1 || backendError.indexOf("Location access is required") !== -1) {
-            sessionStorage.removeItem('location_verified');
-            sessionStorage.removeItem('verified_lat');
-            sessionStorage.removeItem('verified_lon');
-        }
-
-        var cachedVerification = sessionStorage.getItem('location_verified');
-        var cachedLat = sessionStorage.getItem('verified_lat');
-        var cachedLon = sessionStorage.getItem('verified_lon');
-
-        if (cachedVerification === 'true' && cachedLat && cachedLon) {
-            var dist = getDistance(TARGET_LAT, TARGET_LON, parseFloat(cachedLat), parseFloat(cachedLon));
-            if (dist <= MAX_DISTANCE_METERS) {
-                latInput.value = cachedLat;
-                lonInput.value = cachedLon;
-                checkSection.style.display = 'none';
-                formSection.style.display = 'block';
-                return;
-            }
-        }
 
         window.addEventListener('load', function() {
             setTimeout(verifyLocation, 500);
