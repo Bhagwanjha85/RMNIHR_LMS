@@ -96,18 +96,41 @@ class ReportTest(models.Model):
     result_value = models.CharField(max_length=50, blank=True, null=True)
     interpretation_text = models.CharField(max_length=50, blank=True, null=True, db_index=True)
 
+    @property
+    def interpretation_range(self):
+        method = (self.report.test_method or '').upper()
+        if method == 'ELISA':
+            if self.test_name == 'HBsAg':
+                return "Negative &lt; 0.191 | Positive &ge; 0.191"
+            elif self.test_name == 'HCV Antibody':
+                return "Negative &lt; 0.361 | Positive &ge; 0.361"
+            else:
+                return "Negative &lt; 9.00 | Equivocal 9.00-11.00 | Positive &gt; 11.00"
+        return ""
+
     def save(self, *args, **kwargs):
         method = (self.report.test_method or '').upper()
         if method == 'ELISA':
             if self.result_value:
                 try:
                     val = float(self.result_value)
-                    if val < 9.0:
-                        self.interpretation_text = "Negative"
-                    elif val > 11.0:
-                        self.interpretation_text = "Positive"
+                    if self.test_name == 'HBsAg':
+                        if val >= 0.191:
+                            self.interpretation_text = "Positive"
+                        else:
+                            self.interpretation_text = "Negative"
+                    elif self.test_name == 'HCV Antibody':
+                        if val >= 0.361:
+                            self.interpretation_text = "Positive"
+                        else:
+                            self.interpretation_text = "Negative"
                     else:
-                        self.interpretation_text = "Equivocal"
+                        if val < 9.0:
+                            self.interpretation_text = "Negative"
+                        elif val > 11.0:
+                            self.interpretation_text = "Positive"
+                        else:
+                            self.interpretation_text = "Equivocal"
                 except ValueError:
                     # Keep interpretation if provided manually or clear it
                     pass

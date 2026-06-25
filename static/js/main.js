@@ -88,13 +88,20 @@ function initReportForm() {
         if (value === '') return '';
         
         const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
+        const testName = testSelect ? testSelect.value.trim() : '';
         
         if (method === 'ELISA') {
             const val = parseFloat(value);
             if (isNaN(val)) return '';
-            if (val < 9.0) return 'Negative';
-            else if (val > 11.0) return 'Positive';
-            else return 'Equivocal';
+            if (testName === 'HBsAg') {
+                return val >= 0.191 ? 'Positive' : 'Negative';
+            } else if (testName === 'HCV Antibody') {
+                return val >= 0.361 ? 'Positive' : 'Negative';
+            } else {
+                if (val < 9.0) return 'Negative';
+                else if (val > 11.0) return 'Positive';
+                else return 'Equivocal';
+            }
         } else {
             // For RT-PCR, RAPID, etc. - parse from text
             const lower = value.toLowerCase();
@@ -105,8 +112,7 @@ function initReportForm() {
         }
     }
     
-    // Update live preview when result input changes
-    resultInput.addEventListener('input', function() {
+    function updateLivePreview() {
         const value = resultInput.value;
         const interpretation = calculateInterpretation(value);
         
@@ -117,7 +123,14 @@ function initReportForm() {
             interpPreview.textContent = '';
             interpPreview.className = 'interpretation-preview-text';
         }
-    });
+    }
+    
+    // Update live preview when result input changes
+    resultInput.addEventListener('input', updateLivePreview);
+    if (testSelect) {
+        testSelect.addEventListener('input', updateLivePreview);
+        testSelect.addEventListener('change', updateLivePreview);
+    }
     
     // Add Test Button Handler
     addTestBtn.addEventListener('click', function() {

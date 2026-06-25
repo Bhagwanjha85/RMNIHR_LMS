@@ -597,64 +597,66 @@
                 <div class="section-badge">Test Results</div>
                 <div class="method-line">Method: {{ report.test_method }}</div>
 
-                <table class="results-table">
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;">Test / Parameter Name</th>
-                            {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
-                            <th class="right">Result &amp; Status</th>
-                            {% else %}
-                            <th class="center">Interpretation Range</th>
-                            <th class="right">Result &amp; Status</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for test in report.tests.all %}
-                        <tr>
-                            <td class="test-name">{{ test.test_name }}</td>
-                            {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
-                            <td class="result right">
-                                {% if test.result_value|lower == 'positive' %}
-                                    <span class="badge-pos">POSITIVE</span>
-                                {% elif test.result_value|lower == 'negative' %}
-                                    <span class="badge-neg">NEGATIVE</span>
-                                {% else %}
-                                    <span class="badge-eqv">{{ test.result_value|upper }}</span>
-                                {% endif %}
-                            </td>
-                            {% else %}
-                            <td class="interp center">
-                                Negative &lt; 9.00 &nbsp;|&nbsp; Equivocal 9.00&ndash;11.00 &nbsp;|&nbsp; Positive &gt; 11.00
-                            </td>
-                            <td class="result right">
-                                {{ test.result_value }}
-                                &nbsp;
-                                {% if test.interpretation_text == 'Positive' %}
-                                <span class="badge-pos">POSITIVE</span>
-                                {% elif test.interpretation_text == 'Negative' %}
-                                <span class="badge-neg">NEGATIVE</span>
-                                {% else %}
-                                <span class="badge-eqv">EQUIVOCAL</span>
-                                {% endif %}
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="{% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}2{% else %}3{% endif %}">
-                                Total tests reported: {{ report.tests.count }} &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+                {% for test in report.tests.all %}
+                <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
+                    <h3 style="font-size: 11pt; font-weight: 700; color: #1b285c; background: #f4f7fc; padding: 6px 10px; border-left: 4px solid #1b285c; margin-bottom: 6px; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ test.test_name }}
+                    </h3>
+                    <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
                                 {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
-                                All values are qualitative results.
+                                <th class="right" style="width: 60%;">Result &amp; Status</th>
                                 {% else %}
-                                All values are quantitative OD readings.
+                                <th class="center" style="width: 35%;">Interpretation Range</th>
+                                <th class="right" style="width: 25%;">Result &amp; Status</th>
                                 {% endif %}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="test-name">{{ test.test_name }}</td>
+                                {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                                <td class="result right">
+                                    {% if test.result_value|lower == 'positive' %}
+                                        <span class="badge-pos">POSITIVE</span>
+                                    {% elif test.result_value|lower == 'negative' %}
+                                        <span class="badge-neg">NEGATIVE</span>
+                                    {% else %}
+                                        <span class="badge-eqv">{{ test.result_value|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                {% else %}
+                                <td class="interp center">
+                                    {{ test.interpretation_range|safe }}
+                                </td>
+                                <td class="result right">
+                                    {{ test.result_value }}
+                                    &nbsp;
+                                    {% if test.interpretation_text == 'Positive' %}
+                                    <span class="badge-pos">POSITIVE</span>
+                                    {% elif test.interpretation_text == 'Negative' %}
+                                    <span class="badge-neg">NEGATIVE</span>
+                                    {% else %}
+                                    <span class="badge-eqv">EQUIVOCAL</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+
+                <div style="font-size: 8.5pt; color: #555; margin-top: 5px; margin-bottom: 20px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px;">
+                    Total tests reported: {{ report.tests.count }} &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+                    {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                    All values are qualitative results.
+                    {% else %}
+                    All values are quantitative OD readings.
+                    {% endif %}
+                </div>
 
                 <!-- ═══ SIGNATURES ═══ -->
                 <div class="sig-section">
