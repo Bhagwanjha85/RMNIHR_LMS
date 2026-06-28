@@ -145,7 +145,7 @@
         }
 
         .logo-box img {
-            max-height: 62px;
+            max-height: 95px;
             width: auto;
             display: block;
         }
@@ -498,10 +498,10 @@
                     <div class="logo-box">
                         <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo"
                             onerror="this.style.display='none';document.getElementById('logo-svg').style.display='flex';"
-                            style="max-height:80px;width:auto;display:block;">
+                            style="max-height:95px;width:auto;display:block;">
                         <!-- SVG fallback shown if logo.png is missing -->
                         <div id="logo-svg" class="logo-fallback" style="display:none;">
-                            <svg width="190" height="70" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="270" height="90" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="45" cy="48" r="42" stroke="#1b285c" stroke-width="3" fill="none" />
                                 <circle cx="45" cy="48" r="37" stroke="#1b285c" stroke-width=".8" stroke-dasharray="3 2"
                                     fill="none" />
@@ -574,34 +574,52 @@
                 <div class="section-badge">Test Results</div>
                 <div class="method-line">Method: {{ report.test_method }}</div>
 
-                {% for test in report.tests.all %}
                 <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
                     <h3 style="font-size: 11pt; font-weight: 700; color: #1b285c; background: #f4f7fc; padding: 6px 10px; border-left: 4px solid #1b285c; margin-bottom: 6px; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
-                        {{ test.test_name }}
+                        Test Category: {{ report.test_method }}
                     </h3>
                     <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">
                         <thead>
                             <tr>
+                                {% if report.test_method|upper == 'RAPID' %}
+                                <th style="text-align:left; width: 50%;">Test / Parameter Name</th>
+                                <th class="right" style="width: 50%;">Status</th>
+                                {% elif report.test_method|upper == 'RT-PCR' %}
                                 <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
-                                {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
-                                <th class="right" style="width: 60%;">Result &amp; Status</th>
+                                <th class="center" style="width: 30%;">Result</th>
+                                <th class="right" style="width: 30%;">Status</th>
                                 {% else %}
+                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
                                 <th class="center" style="width: 35%;">Interpretation Range</th>
                                 <th class="right" style="width: 25%;">Result &amp; Status</th>
                                 {% endif %}
                             </tr>
                         </thead>
                         <tbody>
+                            {% for test in report.tests.all %}
                             <tr>
                                 <td class="test-name">{{ test.test_name }}</td>
-                                {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                                {% if report.test_method|upper == 'RAPID' %}
                                 <td class="result right">
-                                    {% if test.result_value|lower == 'positive' %}
+                                    {% if test.interpretation_text|lower == 'positive' or test.result_value|lower == 'positive' %}
                                         <span class="badge-pos">POSITIVE</span>
-                                    {% elif test.result_value|lower == 'negative' %}
+                                    {% elif test.interpretation_text|lower == 'negative' or test.result_value|lower == 'negative' %}
                                         <span class="badge-neg">NEGATIVE</span>
                                     {% else %}
-                                        <span class="badge-eqv">{{ test.result_value|upper }}</span>
+                                        <span class="badge-eqv">{{ test.interpretation_text|upper|default:test.result_value|upper }}</span>
+                                    {% endif %}
+                                </td>
+                                {% elif report.test_method|upper == 'RT-PCR' %}
+                                <td class="result center" style="font-weight: normal; font-size: 10.5pt; text-align: center;">
+                                    {{ test.result_value|default:"-" }}
+                                </td>
+                                <td class="result right">
+                                    {% if test.interpretation_text|lower == 'positive' %}
+                                        <span class="badge-pos">POSITIVE</span>
+                                    {% elif test.interpretation_text|lower == 'negative' %}
+                                        <span class="badge-neg">NEGATIVE</span>
+                                    {% else %}
+                                        <span class="badge-eqv">{{ test.interpretation_text|upper|default:"-" }}</span>
                                     {% endif %}
                                 </td>
                                 {% else %}
@@ -621,10 +639,10 @@
                                 </td>
                                 {% endif %}
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% endfor %}
 
                 <div style="font-size: 8.5pt; color: #555; margin-top: 5px; margin-bottom: 20px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px;">
                     Total tests reported: {{ report.tests.count }} &nbsp;&nbsp;&mdash;&nbsp;&nbsp;

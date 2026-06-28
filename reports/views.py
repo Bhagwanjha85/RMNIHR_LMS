@@ -384,11 +384,13 @@ def create_report(request):
                 for item in tests_list:
                     test_name = item.get('test_name')
                     result_value = item.get('result_value')
+                    interpretation = item.get('interpretation')
                     if test_name and result_value is not None:
                         ReportTest.objects.create(
                             report=report,
                             test_name=test_name,
-                            result_value=result_value
+                            result_value=result_value,
+                            interpretation_text=interpretation
                         )
                 
                 return redirect('view_report', pk=report.pk)
@@ -461,11 +463,13 @@ def edit_report(request, pk):
                 for item in tests_list:
                     test_name = item.get('test_name')
                     result_value = item.get('result_value')
+                    interpretation = item.get('interpretation')
                     if test_name and result_value is not None:
                         ReportTest.objects.create(
                             report=report,
                             test_name=test_name,
-                            result_value=result_value
+                            result_value=result_value,
+                            interpretation_text=interpretation
                         )
                 
                 return redirect('view_report', pk=report.pk)
@@ -480,7 +484,8 @@ def edit_report(request, pk):
     for test in report.tests.all():
         existing_tests.append({
             'test_name': test.test_name,
-            'result_value': str(test.result_value)
+            'result_value': str(test.result_value),
+            'interpretation': test.interpretation_text
         })
         
     context = {

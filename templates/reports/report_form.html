@@ -60,13 +60,11 @@
             <div>
                 <div class="form-group" style="margin-bottom: 1.2rem;">
                     <label for="test_method">Test Method *</label>
-                    <input type="text" id="test_method" name="test_method" required class="form-control" list="test-methods-list" 
-                           value="{% if report %}{{ report.test_method }}{% else %}ELISA{% endif %}" placeholder="e.g. ELISA, RT-PCR, RAPID">
-                    <datalist id="test-methods-list">
-                        <option value="ELISA">
-                        <option value="RT-PCR">
-                        <option value="RAPID">
-                    </datalist>
+                    <select id="test_method" name="test_method" required class="form-control">
+                        <option value="ELISA" {% if report.test_method == 'ELISA' or not report %}selected{% endif %}>ELISA</option>
+                        <option value="RAPID" {% if report.test_method == 'RAPID' %}selected{% endif %}>RAPID</option>
+                        <option value="RT-PCR" {% if report.test_method == 'RT-PCR' %}selected{% endif %}>RT-PCR</option>
+                    </select>
                 </div>
                 
                 <div class="form-group" style="margin-bottom: 1.2rem;">
@@ -127,8 +125,13 @@
                 
                 <div class="form-group" id="result-input-group">
                     <label for="result-input" id="result-input-label">Result Value</label>
-                    <input type="text" id="result-input" placeholder="e.g. 2.959 or Positive" class="form-control">
-                    <select id="result-select" class="form-control" style="display: none;">
+                    <input type="text" id="result-input" placeholder="e.g. 2.959" class="form-control">
+                </div>
+                
+                <div class="form-group" id="status-select-group" style="display: none;">
+                    <label for="status-select">Status (Positive/Negative) *</label>
+                    <select id="status-select" class="form-control">
+                        <option value="">-- Select Status --</option>
                         <option value="Positive">Positive</option>
                         <option value="Negative">Negative</option>
                     </select>
@@ -146,7 +149,7 @@
             </div>
             
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                Note: For ELISA, interpretation is calculated automatically: <strong>HBsAg</strong> (Cutoff 0.191), <strong>HCV Antibody</strong> (Cutoff 0.361), and others (<strong>Negative &lt; 9.0</strong>, <strong>Equivocal 9.0 – 11.0</strong>, <strong>Positive &gt; 11.0</strong>). For RT-PCR/RAPID, type your interpretation (e.g. Positive) in Result.
+                Note: For ELISA, interpretation is calculated automatically: <strong>HBsAg</strong> (Cutoff 0.191), <strong>HCV Antibody</strong> (Cutoff 0.361), and others (<strong>Negative &lt; 9.0</strong>, <strong>Equivocal 9.0 – 11.0</strong>, <strong>Positive &gt; 11.0</strong>). For RAPID/RT-PCR, select Positive/Negative from the Status dropdown.
             </p>
         </div>
         
@@ -154,9 +157,9 @@
         <div style="margin-bottom: 2rem;">
             <table class="data-table" style="background-color: transparent;">
                 <thead>
-                    <tr>
+                    <tr id="tests-table-header">
                         <th>Test Parameter</th>
-                        <th id="th-auto-interpretation">Auto Interpretation</th>
+                        <th>Auto Interpretation</th>
                         <th>Entered Value</th>
                         <th style="width: 80px; text-align: right;">Action</th>
                     </tr>

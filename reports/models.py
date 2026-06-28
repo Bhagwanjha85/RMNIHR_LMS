@@ -132,13 +132,21 @@ class ReportTest(models.Model):
                         else:
                             self.interpretation_text = "Equivocal"
                 except ValueError:
-                    # Keep interpretation if provided manually or clear it
                     pass
-        elif method in ['RT-PCR', 'RAPID'] or method:
-            # If they enter 'Positive' or 'Negative' directly in result
+        elif method == 'RAPID':
             val = str(self.result_value).strip().lower()
             if val in ['positive', 'negative', 'equivocal', 'invalid']:
                 self.interpretation_text = val.capitalize()
+        elif method == 'RT-PCR':
+            if not self.interpretation_text and self.result_value:
+                val = str(self.result_value).strip().lower()
+                if val in ['positive', 'negative', 'equivocal', 'invalid']:
+                    self.interpretation_text = val.capitalize()
+        else:
+            if self.result_value:
+                val = str(self.result_value).strip().lower()
+                if val in ['positive', 'negative', 'equivocal', 'invalid']:
+                    self.interpretation_text = val.capitalize()
         super().save(*args, **kwargs)
 
     def __str__(self):
