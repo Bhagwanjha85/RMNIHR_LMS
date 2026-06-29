@@ -277,9 +277,9 @@ def dashboard(request):
     # Get some quick analytics in a single optimized query using conditional aggregation
     # This avoids multiple nested subqueries (exclude pk__in) which slow down databases as they grow.
     stats = reports.annotate(
-        is_pos=Count('tests', filter=Q(tests__interpretation_text='Positive')),
-        is_eq=Count('tests', filter=Q(tests__interpretation_text='Equivocal')),
-        is_neg=Count('tests', filter=Q(tests__interpretation_text='Negative'))
+        is_pos=Count('tests', filter=Q(tests__interpretation_text__in=['Positive', 'Reactive', 'positive', 'reactive', 'POSITIVE', 'REACTIVE'])),
+        is_eq=Count('tests', filter=Q(tests__interpretation_text__in=['Equivocal', 'equivocal', 'EQUIVOCAL'])),
+        is_neg=Count('tests', filter=Q(tests__interpretation_text__in=['Negative', 'Non-Reactive', 'negative', 'non-reactive', 'NEGATIVE', 'NON-REACTIVE', 'Non-reactive', 'nonreactive', 'Nonreactive']))
     ).aggregate(
         pos_cnt=Count('id', filter=Q(is_pos__gt=0)),
         eq_cnt=Count('id', filter=Q(is_pos=0, is_eq__gt=0)),

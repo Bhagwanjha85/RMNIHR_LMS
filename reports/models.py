@@ -116,6 +116,22 @@ class ReportTest(models.Model):
 
     def save(self, *args, **kwargs):
         method = (self.test_method or '').upper()
+        qualitative_mapping = {
+            'positive': 'Positive',
+            'negative': 'Negative',
+            'equivocal': 'Equivocal',
+            'invalid': 'Invalid',
+            'reactive': 'Reactive',
+            'non-reactive': 'Non-Reactive',
+            'nonreactive': 'Non-Reactive'
+        }
+        
+        # Normalize interpretation if it is not set and result_value is qualitative
+        if not self.interpretation_text and self.result_value:
+            val_clean = str(self.result_value).strip().lower()
+            if val_clean in qualitative_mapping:
+                self.interpretation_text = qualitative_mapping[val_clean]
+
         if method == 'ELISA':
             if self.result_value:
                 try:
@@ -138,22 +154,24 @@ class ReportTest(models.Model):
                         else:
                             self.interpretation_text = "Equivocal"
                 except ValueError:
-                    pass
+                    val_clean = str(self.result_value).strip().lower()
+                    if val_clean in qualitative_mapping:
+                        self.interpretation_text = qualitative_mapping[val_clean]
         elif method == 'RAPID':
             if not self.interpretation_text and self.result_value:
-                val = str(self.result_value).strip().lower()
-                if val in ['positive', 'negative', 'equivocal', 'invalid']:
-                    self.interpretation_text = val.capitalize()
+                val_clean = str(self.result_value).strip().lower()
+                if val_clean in qualitative_mapping:
+                    self.interpretation_text = qualitative_mapping[val_clean]
         elif method == 'RT-PCR':
             if not self.interpretation_text and self.result_value:
-                val = str(self.result_value).strip().lower()
-                if val in ['positive', 'negative', 'equivocal', 'invalid']:
-                    self.interpretation_text = val.capitalize()
+                val_clean = str(self.result_value).strip().lower()
+                if val_clean in qualitative_mapping:
+                    self.interpretation_text = qualitative_mapping[val_clean]
         else:
             if not self.interpretation_text and self.result_value:
-                val = str(self.result_value).strip().lower()
-                if val in ['positive', 'negative', 'equivocal', 'invalid']:
-                    self.interpretation_text = val.capitalize()
+                val_clean = str(self.result_value).strip().lower()
+                if val_clean in qualitative_mapping:
+                    self.interpretation_text = qualitative_mapping[val_clean]
         super().save(*args, **kwargs)
 
     def __str__(self):
