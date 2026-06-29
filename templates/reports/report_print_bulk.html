@@ -687,13 +687,7 @@
                     <div class="sig-item">
                         <div class="sig-line-area">
                             {% if report.show_vc %}
-                            <svg width="140" height="42" viewBox="0 0 140 42">
-                                <path
-                                    d="M12,27 C20,24 33,4 40,11 C47,18 30,37 46,31 C62,25 48,7 63,17 C78,27 73,9 86,14 C99,19 93,31 106,23 C119,15 123,21 133,17"
-                                    fill="none" stroke="#003df5" stroke-width="1.9" stroke-linecap="round" />
-                                <path d="M26,25 Q58,34 118,27" fill="none" stroke="#003df5" stroke-width="1.1"
-                                    stroke-linecap="round" />
-                            </svg>
+                            <img src="{% static 'signature_ic.png' %}" alt="Signature of I/C" style="max-height: 38px; width: auto; display: block; margin: 0 auto;">
                             {% endif %}
                         </div>
                         <div class="sig-label">{{ report.vc_title }}</div>

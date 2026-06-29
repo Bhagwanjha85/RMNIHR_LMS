@@ -350,7 +350,7 @@ def create_report(request):
         technician_name = request.POST.get('technician_name', 'Lab Technician / RA')
         scientist_name = request.POST.get('scientist_name', 'Research Scientist')
         vc_name = request.POST.get('vc_name', 'Dr. G.C Sahoo')
-        vc_title = request.POST.get('vc_title', 'Signature of VC')
+        vc_title = request.POST.get('vc_title', 'Signature of I/C')
         
         # Tests data (JSON from dynamic frontend table)
         tests_data_json = request.POST.get('tests_data_json', '[]')

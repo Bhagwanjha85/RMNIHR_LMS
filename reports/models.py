@@ -35,7 +35,7 @@ class Report(models.Model):
     technician_name = models.CharField(max_length=100, default="Lab Technician / RA")
     scientist_name = models.CharField(max_length=100, default="Research Scientist")
     vc_name = models.CharField(max_length=100, default="Dr. G.C Sahoo")
-    vc_title = models.CharField(max_length=100, default="Signature of VC")
+    vc_title = models.CharField(max_length=100, default="Signature of I/C")
     
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

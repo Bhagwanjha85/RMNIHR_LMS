@@ -199,7 +199,7 @@
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
                         <input type="checkbox" name="show_vc" {% if report.show_vc or not report %}checked{% endif %}>
-                        Include "Signature of VC (Dr. G.C Sahoo)"
+                        Include "Signature of I/C (Dr. G.C Sahoo)"
                     </label>
                 </div>
             </div>
@@ -217,10 +217,10 @@
                         <input type="text" name="scientist_name" class="form-control" style="font-size: 0.85rem;" 
                                value="{% if report %}{{ report.scientist_name }}{% else %}Research Scientist{% endif %}" placeholder="Scientist Title">
                         <input type="text" name="vc_title" class="form-control" style="font-size: 0.85rem;" 
-                               value="{% if report %}{{ report.vc_title }}{% else %}Signature of VC{% endif %}" placeholder="VC Title">
+                               value="{% if report %}{{ report.vc_title }}{% else %}Signature of I/C{% endif %}" placeholder="I/C Title">
                     </div>
                     <input type="text" name="vc_name" class="form-control" style="font-size: 0.85rem;" 
-                           value="{% if report %}{{ report.vc_name }}{% else %}Dr. G.C Sahoo{% endif %}" placeholder="VC Name">
+                           value="{% if report %}{{ report.vc_name }}{% else %}Dr. G.C Sahoo{% endif %}" placeholder="I/C Name">
                 </div>
             </div>
         </div>
