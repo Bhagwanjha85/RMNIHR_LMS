@@ -40,6 +40,11 @@ class Report(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.patient_name:
+            self.patient_name = self.patient_name.strip().title()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.lab_id} - {self.patient_name}"
 
