@@ -593,26 +593,22 @@
                 <!-- Dark border between patient info and test results -->
                 <hr class="border-line" style="margin-top:10px;">
 
-                <!-- ═══ TEST RESULTS ═══ -->
                 <div class="section-badge">Test Results</div>
-                <div class="method-line">Method: {{ report.test_method }}</div>
 
-                {% regroup report.tests.all by test_method as test_groups %}
+                {% regroup report.tests.all|dictsort:"test_method" by test_method as test_groups %}
                 {% for group in test_groups %}
                 <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
                     <h3 style="font-size: 11pt; font-weight: 700; color: #1b285c; background: #f4f7fc; padding: 6px 10px; border-left: 4px solid #1b285c; margin-bottom: 6px; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Test Category: {{ group.grouper }}
+                        Method: {{ group.grouper }}
                     </h3>
                     <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">
                         <thead>
                             <tr>
                                 {% if group.grouper|upper == 'RAPID' %}
-                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
-                                <th class="center" style="width: 30%;">Result</th>
+                                <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
                                 <th class="right" style="width: 30%;">Status</th>
                                 {% elif group.grouper|upper == 'RT-PCR' %}
-                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
-                                <th class="center" style="width: 30%;">Result</th>
+                                <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
                                 <th class="right" style="width: 30%;">Status</th>
                                 {% else %}
                                 <th style="text-align:left; width: 35%;">Test / Parameter Name</th>
@@ -627,16 +623,10 @@
                             <tr>
                                 <td class="test-name">{{ test.test_name }}</td>
                                 {% if group.grouper|upper == 'RAPID' %}
-                                <td class="result center" style="font-weight: normal; font-size: 10.5pt; text-align: center; color: #000;">
-                                    -
-                                </td>
                                 <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
                                     {{ test.interpretation_text|upper }}
                                 </td>
                                 {% elif group.grouper|upper == 'RT-PCR' %}
-                                <td class="result center" style="font-weight: normal; font-size: 10.5pt; text-align: center; color: #000;">
-                                    {{ test.result_value|default:"-" }}
-                                </td>
                                 <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
                                     {{ test.interpretation_text|upper }}
                                 </td>
