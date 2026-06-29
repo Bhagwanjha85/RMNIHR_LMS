@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reportForm) {
         initReportForm();
     }
-}// Report Form Logic
+});// Report Form Logic
 function initReportForm() {
     const testSelect = document.getElementById('test-select');
     const resultInput = document.getElementById('result-input');

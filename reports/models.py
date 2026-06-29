@@ -140,16 +140,17 @@ class ReportTest(models.Model):
                 except ValueError:
                     pass
         elif method == 'RAPID':
-            val = str(self.result_value).strip().lower()
-            if val in ['positive', 'negative', 'equivocal', 'invalid']:
-                self.interpretation_text = val.capitalize()
+            if not self.interpretation_text and self.result_value:
+                val = str(self.result_value).strip().lower()
+                if val in ['positive', 'negative', 'equivocal', 'invalid']:
+                    self.interpretation_text = val.capitalize()
         elif method == 'RT-PCR':
             if not self.interpretation_text and self.result_value:
                 val = str(self.result_value).strip().lower()
                 if val in ['positive', 'negative', 'equivocal', 'invalid']:
                     self.interpretation_text = val.capitalize()
         else:
-            if self.result_value:
+            if not self.interpretation_text and self.result_value:
                 val = str(self.result_value).strip().lower()
                 if val in ['positive', 'negative', 'equivocal', 'invalid']:
                     self.interpretation_text = val.capitalize()
