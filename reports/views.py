@@ -385,12 +385,14 @@ def create_report(request):
                     test_name = item.get('test_name')
                     result_value = item.get('result_value')
                     interpretation = item.get('interpretation')
+                    test_method = item.get('test_method', 'ELISA')
                     if test_name and result_value is not None:
                         ReportTest.objects.create(
                             report=report,
                             test_name=test_name,
                             result_value=result_value,
-                            interpretation_text=interpretation
+                            interpretation_text=interpretation,
+                            test_method=test_method
                         )
                 
                 return redirect('view_report', pk=report.pk)
@@ -464,12 +466,14 @@ def edit_report(request, pk):
                     test_name = item.get('test_name')
                     result_value = item.get('result_value')
                     interpretation = item.get('interpretation')
+                    test_method = item.get('test_method', 'ELISA')
                     if test_name and result_value is not None:
                         ReportTest.objects.create(
                             report=report,
                             test_name=test_name,
                             result_value=result_value,
-                            interpretation_text=interpretation
+                            interpretation_text=interpretation,
+                            test_method=test_method
                         )
                 
                 return redirect('view_report', pk=report.pk)
@@ -485,7 +489,8 @@ def edit_report(request, pk):
         existing_tests.append({
             'test_name': test.test_name,
             'result_value': str(test.result_value),
-            'interpretation': test.interpretation_text
+            'interpretation': test.interpretation_text,
+            'test_method': test.test_method
         })
         
     context = {
@@ -763,7 +768,8 @@ def bulk_upload(request):
                                     ReportTest.objects.create(
                                         report=report,
                                         test_name=test_name_db,
-                                        result_value=val_str
+                                        result_value=val_str,
+                                        test_method=report.test_method
                                     )
                                     
                 return redirect('dashboard')

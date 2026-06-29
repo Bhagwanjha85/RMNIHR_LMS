@@ -6,6 +6,7 @@ __pycache__/
 # Local Database (Do not upload patient data/testing databases to GitHub)
 db.sqlite3
 db.sqlite3-journal
+db_corrupt.sqlite3
 
 # Virtual Environments (System specific dependencies)
 venv/

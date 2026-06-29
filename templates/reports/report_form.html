@@ -58,14 +58,7 @@
             
             <!-- Column 2 -->
             <div>
-                <div class="form-group" style="margin-bottom: 1.2rem;">
-                    <label for="test_method">Test Method *</label>
-                    <select id="test_method" name="test_method" required class="form-control">
-                        <option value="ELISA" {% if report.test_method == 'ELISA' or not report %}selected{% endif %}>ELISA</option>
-                        <option value="RAPID" {% if report.test_method == 'RAPID' %}selected{% endif %}>RAPID</option>
-                        <option value="RT-PCR" {% if report.test_method == 'RT-PCR' %}selected{% endif %}>RT-PCR</option>
-                    </select>
-                </div>
+                <input type="hidden" id="test_method" name="test_method" value="{% if report %}{{ report.test_method }}{% else %}ELISA{% endif %}">
                 
                 <div class="form-group" style="margin-bottom: 1.2rem;">
                     <label for="sample_type">Sample Type *</label>
@@ -113,6 +106,15 @@
             <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--primary);">Add Test Entry</h4>
             
             <div class="test-input-row">
+                <div class="form-group" style="min-width: 120px;">
+                    <label for="test-category-select">Test Category</label>
+                    <select id="test-category-select" class="form-control">
+                        <option value="ELISA">ELISA</option>
+                        <option value="RAPID">RAPID</option>
+                        <option value="RT-PCR">RT-PCR</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label for="test-select">Test / Parameter Name</label>
                     <input type="text" id="test-select" class="form-control" list="test-options" placeholder="Select or type test name...">
@@ -159,8 +161,9 @@
                 <thead>
                     <tr id="tests-table-header">
                         <th>Test Parameter</th>
-                        <th>Auto Interpretation</th>
+                        <th>Category</th>
                         <th>Entered Value</th>
+                        <th>Status / Interpretation</th>
                         <th style="width: 80px; text-align: right;">Action</th>
                     </tr>
                 </thead>

@@ -92,13 +92,14 @@ class ReportTest(models.Model):
         ('Influenza VICTORIA', 'Influenza VICTORIA'),
     ]
     report = models.ForeignKey(Report, related_name='tests', on_delete=models.CASCADE)
+    test_method = models.CharField(max_length=50, default='ELISA')
     test_name = models.CharField(max_length=100, db_index=True)
     result_value = models.CharField(max_length=50, blank=True, null=True)
     interpretation_text = models.CharField(max_length=50, blank=True, null=True, db_index=True)
 
     @property
     def interpretation_range(self):
-        method = (self.report.test_method or '').upper()
+        method = (self.test_method or '').upper()
         if method == 'ELISA':
             if self.test_name == 'HBsAg':
                 return "Negative &lt; 0.191 | Positive &ge; 0.191"
@@ -109,7 +110,7 @@ class ReportTest(models.Model):
         return ""
 
     def save(self, *args, **kwargs):
-        method = (self.report.test_method or '').upper()
+        method = (self.test_method or '').upper()
         if method == 'ELISA':
             if self.result_value:
                 try:
@@ -150,4 +151,4 @@ class ReportTest(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.test_name}: {self.result_value} ({self.interpretation_text})"
+        return f"{self.test_name}: {self.result_value} ({self.interpretation_text}) [{self.test_method}]"

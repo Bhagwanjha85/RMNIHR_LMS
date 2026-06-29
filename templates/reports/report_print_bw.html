@@ -355,67 +355,58 @@
                 <div class="section-title">Test Results</div>
                 <div class="method-line">Method: {{ report.test_method }}</div>
 
+                {% regroup report.tests.all by test_method as test_groups %}
+                {% for group in test_groups %}
                 <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
                     <h3 style="font-size: 10pt; font-weight: 700; color: #000; background: #eaeaea; padding: 6px 10px; border-left: 4px solid #000; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Test Category: {{ report.test_method }}
+                        Test Category: {{ group.grouper }}
                     </h3>
                     <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">
                         <thead>
                             <tr>
-                                {% if report.test_method|upper == 'RAPID' %}
-                                <th style="text-align:left; width: 50%;">Test / Parameter Name</th>
-                                <th style="text-align:right; width: 50%;">Status</th>
-                                {% elif report.test_method|upper == 'RT-PCR' %}
+                                {% if group.grouper|upper == 'RAPID' %}
+                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
+                                <th style="text-align:center; width: 30%;">Result</th>
+                                <th style="text-align:right; width: 30%;">Status</th>
+                                {% elif group.grouper|upper == 'RT-PCR' %}
                                 <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
                                 <th style="text-align:center; width: 30%;">Result</th>
                                 <th style="text-align:right; width: 30%;">Status</th>
                                 {% else %}
-                                <th style="text-align:left; width: 40%;">Test / Parameter Name</th>
-                                <th style="text-align:center; width: 35%;">Interpretation Range</th>
-                                <th style="text-align:right; width: 25%;">Result &amp; Status</th>
+                                <th style="text-align:left; width: 35%;">Test / Parameter Name</th>
+                                <th style="text-align:center; width: 30%;">Interpretation Range</th>
+                                <th style="text-align:center; width: 15%;">Result Value</th>
+                                <th style="text-align:right; width: 20%;">Status</th>
                                 {% endif %}
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in report.tests.all %}
+                            {% for test in group.list %}
                             <tr>
                                 <td class="test-name">{{ test.test_name }}</td>
-                                {% if report.test_method|upper == 'RAPID' %}
-                                <td class="result right" style="text-align:right;">
-                                    {% if test.interpretation_text|lower == 'positive' or test.result_value|lower == 'positive' %}
-                                        <span class="status-label">POSITIVE</span>
-                                    {% elif test.interpretation_text|lower == 'negative' or test.result_value|lower == 'negative' %}
-                                        <span class="status-label">NEGATIVE</span>
-                                    {% else %}
-                                        <span class="status-label">{{ test.interpretation_text|upper|default:test.result_value|upper }}</span>
-                                    {% endif %}
+                                {% if group.grouper|upper == 'RAPID' %}
+                                <td class="result center" style="text-align:center; font-weight: normal; font-size: 10pt;">
+                                    -
                                 </td>
-                                {% elif report.test_method|upper == 'RT-PCR' %}
+                                <td class="result right" style="text-align:right; font-weight: bold; color: #000;">
+                                    {{ test.interpretation_text|upper }}
+                                </td>
+                                {% elif group.grouper|upper == 'RT-PCR' %}
                                 <td class="result center" style="text-align:center; font-weight: normal; font-size: 10pt;">
                                     {{ test.result_value|default:"-" }}
                                 </td>
-                                <td class="result right" style="text-align:right;">
-                                    {% if test.interpretation_text|lower == 'positive' %}
-                                        <span class="status-label">POSITIVE</span>
-                                    {% elif test.interpretation_text|lower == 'negative' %}
-                                        <span class="status-label">NEGATIVE</span>
-                                    {% else %}
-                                        <span class="status-label">{{ test.interpretation_text|upper|default:"-" }}</span>
-                                    {% endif %}
+                                <td class="result right" style="text-align:right; font-weight: bold; color: #000;">
+                                    {{ test.interpretation_text|upper }}
                                 </td>
                                 {% else %}
                                 <td class="interp center" style="text-align:center;">
                                     {{ test.interpretation_range|safe }}
                                 </td>
-                                <td class="result" style="text-align:right;">
-                                    {{ test.result_value }}&nbsp;
-                                    {% if test.interpretation_text == 'Positive' %}
-                                    <span class="status-label">POSITIVE</span>
-                                    {% elif test.interpretation_text == 'Negative' %}
-                                    <span class="status-label">NEGATIVE</span>
-                                    {% else %}
-                                    <span class="status-label">EQUIVOCAL</span>
-                                    {% endif %}
+                                <td class="result center" style="text-align:center; font-weight: normal; font-size: 10pt;">
+                                    {{ test.result_value }}
+                                </td>
+                                <td class="result right" style="text-align:right; font-weight: bold; color: #000;">
+                                    {{ test.interpretation_text|upper }}
                                 </td>
                                 {% endif %}
                             </tr>
@@ -423,6 +414,7 @@
                         </tbody>
                     </table>
                 </div>
+                {% endfor %}
 
                 <div style="font-size: 8.5pt; color: #000; margin-top: 5px; margin-bottom: 20px; font-style: italic; border-top: 1px dashed #000; padding-top: 8px;">
                     Total tests reported: {{ report.tests.count }} &nbsp;&nbsp;&mdash;&nbsp;&nbsp;

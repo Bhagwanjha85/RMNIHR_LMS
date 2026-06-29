@@ -26,9 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (reportForm) {
         initReportForm();
     }
-});
-
-// Report Form Logic
+}// Report Form Logic
 function initReportForm() {
     const testSelect = document.getElementById('test-select');
     const resultInput = document.getElementById('result-input');
@@ -36,7 +34,7 @@ function initReportForm() {
     const addTestBtn = document.getElementById('add-test-btn');
     const testsTableBody = document.getElementById('tests-table-body');
     const testsDataJson = document.getElementById('tests-data-json');
-    const testMethodInput = document.getElementById('test_method');
+    const testCategorySelect = document.getElementById('test-category-select');
     
     // UI input containers
     const resultInputGroup = document.getElementById('result-input-group');
@@ -44,7 +42,6 @@ function initReportForm() {
     const statusSelectGroup = document.getElementById('status-select-group');
     const statusSelect = document.getElementById('status-select');
     const interpPreviewContainer = document.getElementById('interpretation-preview-container');
-    const tableHeader = document.getElementById('tests-table-header');
     
     // Internal state for tests list
     let testsList = [];
@@ -55,14 +52,16 @@ function initReportForm() {
         try {
             testsList = JSON.parse(existingTestsData.value);
             testsList = testsList.map(item => {
+                let cat = item.test_method || 'ELISA';
                 let interp = item.interpretation;
                 if (!interp) {
-                    interp = calculateInterpretation(item.result_value);
+                    interp = calculateInterpretation(item.result_value, item.test_name, cat);
                 }
                 return {
                     test_name: item.test_name,
                     result_value: item.result_value,
-                    interpretation: interp
+                    interpretation: interp,
+                    test_method: cat
                 };
             });
             renderTestsTable();
@@ -73,20 +72,12 @@ function initReportForm() {
     
     // Result toggle based on method
     function toggleResultInput() {
-        const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
+        const method = testCategorySelect ? testCategorySelect.value.trim().toUpperCase() : 'ELISA';
         
         if (method === 'RAPID') {
             if (resultInputGroup) resultInputGroup.style.display = 'none';
             if (statusSelectGroup) statusSelectGroup.style.display = 'block';
             if (interpPreviewContainer) interpPreviewContainer.style.display = 'none';
-            
-            if (tableHeader) {
-                tableHeader.innerHTML = `
-                    <th>Test Parameter</th>
-                    <th>Status</th>
-                    <th style="width: 80px; text-align: right;">Action</th>
-                `;
-            }
         } else if (method === 'RT-PCR') {
             if (resultInputGroup) {
                 resultInputGroup.style.display = 'block';
@@ -95,15 +86,6 @@ function initReportForm() {
             }
             if (statusSelectGroup) statusSelectGroup.style.display = 'block';
             if (interpPreviewContainer) interpPreviewContainer.style.display = 'none';
-            
-            if (tableHeader) {
-                tableHeader.innerHTML = `
-                    <th>Test Parameter</th>
-                    <th>Entered Value</th>
-                    <th>Status</th>
-                    <th style="width: 80px; text-align: right;">Action</th>
-                `;
-            }
         } else {
             // ELISA
             if (resultInputGroup) {
@@ -113,39 +95,30 @@ function initReportForm() {
             }
             if (statusSelectGroup) statusSelectGroup.style.display = 'none';
             if (interpPreviewContainer) interpPreviewContainer.style.display = 'block';
-            
-            if (tableHeader) {
-                tableHeader.innerHTML = `
-                    <th>Test Parameter</th>
-                    <th>Auto Interpretation</th>
-                    <th>Entered Value</th>
-                    <th style="width: 80px; text-align: right;">Action</th>
-                `;
-            }
         }
         
-        renderTestsTable();
+        updateLivePreview();
     }
     
-    if (testMethodInput) {
-        testMethodInput.addEventListener('input', toggleResultInput);
-        testMethodInput.addEventListener('change', toggleResultInput);
+    if (testCategorySelect) {
+        testCategorySelect.addEventListener('input', toggleResultInput);
+        testCategorySelect.addEventListener('change', toggleResultInput);
         setTimeout(toggleResultInput, 100); // init
     }
 
     // Live calculation of interpretation
-    function calculateInterpretation(value) {
+    function calculateInterpretation(value, testName, category) {
         if (value === '') return '';
         
-        const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
-        const testName = testSelect ? testSelect.value.trim() : '';
+        const method = category || (testCategorySelect ? testCategorySelect.value.trim().toUpperCase() : 'ELISA');
+        const name = testName || (testSelect ? testSelect.value.trim() : '');
         
-        if (method === 'ELISA') {
+        if (method.toUpperCase() === 'ELISA') {
             const val = parseFloat(value);
             if (isNaN(val)) return '';
-            if (testName === 'HBsAg') {
+            if (name === 'HBsAg') {
                 return val >= 0.191 ? 'Positive' : 'Negative';
-            } else if (testName === 'HCV Antibody') {
+            } else if (name === 'HCV Antibody') {
                 return val >= 0.361 ? 'Positive' : 'Negative';
             } else {
                 if (val < 9.0) return 'Negative';
@@ -158,7 +131,8 @@ function initReportForm() {
     
     function updateLivePreview() {
         const value = resultInput.value;
-        const interpretation = calculateInterpretation(value);
+        const testName = testSelect ? testSelect.value.trim() : '';
+        const interpretation = calculateInterpretation(value, testName);
         
         if (interpretation) {
             interpPreview.textContent = `Interpretation: ${interpretation}`;
@@ -178,21 +152,21 @@ function initReportForm() {
     
     // Add Test Button Handler
     addTestBtn.addEventListener('click', function() {
-        const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
+        const method = testCategorySelect ? testCategorySelect.value.trim().toUpperCase() : 'ELISA';
         const testName = testSelect.value.trim();
         let resultVal = '';
         let statusVal = '';
         
         if (method === 'RAPID') {
             statusVal = statusSelect ? statusSelect.value : '';
-            resultVal = statusVal;
+            resultVal = '-';
         } else if (method === 'RT-PCR') {
-            resultVal = resultInput.value.trim();
+            resultVal = resultInput.value.trim() || '-';
             statusVal = statusSelect ? statusSelect.value : '';
         } else {
             // ELISA
             resultVal = resultInput.value.trim();
-            statusVal = calculateInterpretation(resultVal);
+            statusVal = calculateInterpretation(resultVal, testName, 'ELISA');
         }
         
         if (!testName) {
@@ -234,7 +208,8 @@ function initReportForm() {
         testsList.push({
             test_name: testName,
             result_value: resultVal,
-            interpretation: statusVal
+            interpretation: statusVal,
+            test_method: testCategorySelect ? testCategorySelect.value : 'ELISA'
         });
         
         // Clear input
@@ -251,22 +226,16 @@ function initReportForm() {
         testsTableBody.innerHTML = '';
         
         if (testsList.length === 0) {
-            let colSpan = 4;
-            const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
-            if (method === 'RAPID') colSpan = 3;
-            
             testsTableBody.innerHTML = `
                 <tr>
-                    <td colspan="${colSpan}" class="text-center" style="color: var(--text-muted); font-style: italic;">
-                        No tests added yet. Select a test and enter the result above.
+                    <td colspan="5" class="text-center" style="color: var(--text-muted); font-style: italic;">
+                        No tests added yet. Select a category, test name and enter the result above.
                     </td>
                 </tr>
             `;
             return;
         }
         
-        const method = testMethodInput ? testMethodInput.value.trim().toUpperCase() : 'ELISA';
-
         testsList.forEach((item, index) => {
             const tr = document.createElement('tr');
             
@@ -275,29 +244,11 @@ function initReportForm() {
             if (interpLower === 'negative') badgeClass = 'badge-negative';
             else if (interpLower === 'positive') badgeClass = 'badge-positive';
             
-            let rowHtml = '';
-            if (method === 'RAPID') {
-                rowHtml = `
-                    <td><strong>${item.test_name}</strong></td>
-                    <td><span class="badge ${badgeClass}">${item.interpretation || '-'}</span></td>
-                `;
-            } else if (method === 'RT-PCR') {
-                rowHtml = `
-                    <td><strong>${item.test_name}</strong></td>
-                    <td><strong>${item.result_value || '-'}</strong></td>
-                    <td><span class="badge ${badgeClass}">${item.interpretation || '-'}</span></td>
-                `;
-            } else {
-                // ELISA
-                rowHtml = `
-                    <td><strong>${item.test_name}</strong></td>
-                    <td><span class="badge ${badgeClass}">${item.interpretation || '-'}</span></td>
-                    <td><strong>${item.result_value}</strong></td>
-                `;
-            }
-            
             tr.innerHTML = `
-                ${rowHtml}
+                <td><strong>${item.test_name}</strong></td>
+                <td><span class="badge" style="background-color: var(--secondary); color: white;">${item.test_method || 'ELISA'}</span></td>
+                <td><strong>${item.result_value || '-'}</strong></td>
+                <td><span class="badge ${badgeClass}">${item.interpretation || '-'}</span></td>
                 <td>
                     <button type="button" class="btn-icon delete remove-test-btn" data-index="${index}" title="Remove Test">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
@@ -326,11 +277,13 @@ function initReportForm() {
     
     // Final validation before submit
     const reportFormElement = document.getElementById('report-form');
-    reportFormElement.addEventListener('submit', function(e) {
-        updateHiddenJson();
-        if (testsList.length === 0) {
-            e.preventDefault();
-            alert('Please add at least one test to the report before saving.');
-        }
-    });
+    if (reportFormElement) {
+        reportFormElement.addEventListener('submit', function(e) {
+            updateHiddenJson();
+            if (testsList.length === 0) {
+                e.preventDefault();
+                alert('Please add at least one test to the report before saving.');
+            }
+        });
+    }
 }
