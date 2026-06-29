@@ -11,7 +11,7 @@
     <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--primary);">Confirm Deletion</h2>
     
     <p style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
-        Are you sure you want to delete the diagnostic report for <strong>{{ report.patient_name }}</strong> (Lab ID: <strong>{{ report.lab_id }}</strong>)?
+        Are you sure you want to delete the diagnostic report for <strong>{{ report.patient_name|title }}</strong> (Lab ID: <strong>{{ report.lab_id }}</strong>)?
     </p>
     
     <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 8px; padding: 12px; margin-bottom: 2rem; font-size: 0.85rem; color: var(--status-positive); font-weight: 500;">

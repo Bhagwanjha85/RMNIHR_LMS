@@ -208,7 +208,7 @@
                                 <td style="text-align: center;"><input type="checkbox" name="report_ids" value="{{ report.pk }}" class="report-checkbox"></td>
                                 <td><span style="font-family: monospace; font-weight: bold; color: var(--secondary);">{{ report.lab_id }}</span></td>
                                 <td>
-                                    <div style="font-weight: 600;">{{ report.patient_name }}</div>
+                                    <div style="font-weight: 600;">{{ report.patient_name|title }}</div>
                                 </td>
                                 <td style="font-size: 0.85rem;">
                                     <div style="display:flex;align-items:center;gap:4px;">

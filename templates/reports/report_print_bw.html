@@ -328,7 +328,7 @@
                     </tr>
                     <tr>
                         <td class="lbl">Patient Name</td>
-                        <td class="val">{{ report.patient_name }}</td>
+                        <td class="val">{{ report.patient_name|title }}</td>
                         <td class="spacer"></td>
                         <td class="lbl">Reporting Date</td>
                         <td class="val">{{ formatted_reporting_date }}</td>
@@ -441,7 +441,7 @@
                     </div>
                     <div class="sig-item">
                         <div class="sig-space"></div>
-                        <div class="sig-label">{{ report.vc_title }}</div>
+                        <div class="sig-label">{% if report.vc_title == 'Signature of VC' %}Signature of I/C{% else %}{{ report.vc_title }}{% endif %}</div>
                         <div class="sig-name">({{ report.vc_name }})</div>
                     </div>
                 </div>

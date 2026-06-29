@@ -546,7 +546,7 @@
                     </tr>
                     <tr>
                         <td class="lbl">Patient Name</td>
-                        <td class="val" colspan="1">{{ report.patient_name }}</td>
+                        <td class="val" colspan="1">{{ report.patient_name|title }}</td>
                         <td class="spacer"></td>
                         <td class="lbl">Reporting Date</td>
                         <td class="val">{{ report.reporting_date|date:"d/m/Y"|default:"-" }}</td>
@@ -690,7 +690,7 @@
                             <img src="{% static 'signature_ic.png' %}" alt="Signature of I/C" style="max-height: 38px; width: auto; display: block; margin: 0 auto;">
                             {% endif %}
                         </div>
-                        <div class="sig-label">{{ report.vc_title }}</div>
+                        <div class="sig-label">{% if report.vc_title == 'Signature of VC' %}Signature of I/C{% else %}{{ report.vc_title }}{% endif %}</div>
                         <div class="sig-name">({{ report.vc_name }})</div>
                     </div>
                 </div>
