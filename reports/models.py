@@ -45,6 +45,10 @@ class Report(models.Model):
             self.patient_name = self.patient_name.strip().title()
         super().save(*args, **kwargs)
 
+    @property
+    def has_rtpcr_value(self):
+        return self.tests.filter(test_method='RT-PCR').exclude(result_value__in=[None, '', '-', 'None']).exists()
+
     def __str__(self):
         return f"{self.lab_id} - {self.patient_name}"
 

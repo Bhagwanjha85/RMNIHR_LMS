@@ -585,8 +585,14 @@
                                 <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
                                 <th class="right" style="width: 30%;">Status</th>
                                 {% elif group.grouper|upper == 'RT-PCR' %}
-                                <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
-                                <th class="right" style="width: 30%;">Status</th>
+                                    {% if report.has_rtpcr_value %}
+                                    <th style="text-align:left; width: 50%;">Test / Parameter Name</th>
+                                    <th class="center" style="width: 20%;">Result Value</th>
+                                    <th class="right" style="width: 30%;">Status</th>
+                                    {% else %}
+                                    <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
+                                    <th class="right" style="width: 30%;">Status</th>
+                                    {% endif %}
                                 {% else %}
                                 <th style="text-align:left; width: 35%;">Test / Parameter Name</th>
                                 <th class="center" style="width: 30%;">Interpretation Range</th>
@@ -604,9 +610,18 @@
                                     {{ test.interpretation_text|upper }}
                                 </td>
                                 {% elif group.grouper|upper == 'RT-PCR' %}
-                                <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
-                                    {{ test.interpretation_text|upper }}
-                                </td>
+                                    {% if report.has_rtpcr_value %}
+                                    <td class="result center" style="text-align: center; color: #000; font-weight: normal; font-size: 10.5pt;">
+                                        {{ test.result_value|default:"-" }}
+                                    </td>
+                                    <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                        {{ test.interpretation_text|upper }}
+                                    </td>
+                                    {% else %}
+                                    <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                        {{ test.interpretation_text|upper }}
+                                    </td>
+                                    {% endif %}
                                 {% else %}
                                 <td class="interp center">
                                     {{ test.interpretation_range|safe }}
