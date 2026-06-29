@@ -107,9 +107,9 @@ class ReportTest(models.Model):
         method = (self.test_method or '').upper()
         if method == 'ELISA':
             if self.test_name == 'HBsAg':
-                return "Negative &lt; 0.191 | Positive &ge; 0.191"
+                return "Non-Reactive &lt; 0.191 | Reactive &ge; 0.191"
             elif self.test_name == 'HCV Antibody':
-                return "Negative &lt; 0.361 | Positive &ge; 0.361"
+                return "Non-Reactive &lt; 0.361 | Reactive &ge; 0.361"
             else:
                 return "Negative &lt; 9.00 | Equivocal 9.00-11.00 | Positive &gt; 11.00"
         return ""
@@ -122,14 +122,14 @@ class ReportTest(models.Model):
                     val = float(self.result_value)
                     if self.test_name == 'HBsAg':
                         if val >= 0.191:
-                            self.interpretation_text = "Positive"
+                            self.interpretation_text = "Reactive"
                         else:
-                            self.interpretation_text = "Negative"
+                            self.interpretation_text = "Non-Reactive"
                     elif self.test_name == 'HCV Antibody':
                         if val >= 0.361:
-                            self.interpretation_text = "Positive"
+                            self.interpretation_text = "Reactive"
                         else:
-                            self.interpretation_text = "Negative"
+                            self.interpretation_text = "Non-Reactive"
                     else:
                         if val < 9.0:
                             self.interpretation_text = "Negative"

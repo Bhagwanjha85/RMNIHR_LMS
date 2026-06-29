@@ -33,20 +33,20 @@ class ReportTestModelTests(TestCase):
         t2 = ReportTest.objects.create(report=self.report, test_name="HBsAg", result_value="0.191")
         t3 = ReportTest.objects.create(report=self.report, test_name="HBsAg", result_value="0.250")
         
-        self.assertEqual(t1.interpretation_text, "Negative")
-        self.assertEqual(t2.interpretation_text, "Positive")
-        self.assertEqual(t3.interpretation_text, "Positive")
-        self.assertEqual(t1.interpretation_range, "Negative &lt; 0.191 | Positive &ge; 0.191")
+        self.assertEqual(t1.interpretation_text, "Non-Reactive")
+        self.assertEqual(t2.interpretation_text, "Reactive")
+        self.assertEqual(t3.interpretation_text, "Reactive")
+        self.assertEqual(t1.interpretation_range, "Non-Reactive &lt; 0.191 | Reactive &ge; 0.191")
 
     def test_hcv_antibody_elisa_cutoffs(self):
         t1 = ReportTest.objects.create(report=self.report, test_name="HCV Antibody", result_value="0.300")
         t2 = ReportTest.objects.create(report=self.report, test_name="HCV Antibody", result_value="0.361")
         t3 = ReportTest.objects.create(report=self.report, test_name="HCV Antibody", result_value="0.450")
         
-        self.assertEqual(t1.interpretation_text, "Negative")
-        self.assertEqual(t2.interpretation_text, "Positive")
-        self.assertEqual(t3.interpretation_text, "Positive")
-        self.assertEqual(t1.interpretation_range, "Negative &lt; 0.361 | Positive &ge; 0.361")
+        self.assertEqual(t1.interpretation_text, "Non-Reactive")
+        self.assertEqual(t2.interpretation_text, "Reactive")
+        self.assertEqual(t3.interpretation_text, "Reactive")
+        self.assertEqual(t1.interpretation_range, "Non-Reactive &lt; 0.361 | Reactive &ge; 0.361")
 
 class LoginGeofencingTests(TestCase):
     def setUp(self):

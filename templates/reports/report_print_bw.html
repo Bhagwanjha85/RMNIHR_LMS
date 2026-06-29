@@ -356,7 +356,7 @@
                 {% regroup report.tests.all|dictsort:"test_method" by test_method as test_groups %}
                 {% for group in test_groups %}
                 <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
-                    <h3 style="font-size: 10pt; font-weight: 700; color: #000; background: #eaeaea; padding: 6px 10px; border-left: 4px solid #000; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <h3 style="font-size: 11pt; font-weight: bold; color: #000; margin-top: 15px; margin-bottom: 8px; font-family: Arial, Helvetica, sans-serif;">
                         Method: {{ group.grouper }}
                     </h3>
                     <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">

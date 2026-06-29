@@ -117,9 +117,9 @@ function initReportForm() {
             const val = parseFloat(value);
             if (isNaN(val)) return '';
             if (name === 'HBsAg') {
-                return val >= 0.191 ? 'Positive' : 'Negative';
+                return val >= 0.191 ? 'Reactive' : 'Non-Reactive';
             } else if (name === 'HCV Antibody') {
-                return val >= 0.361 ? 'Positive' : 'Negative';
+                return val >= 0.361 ? 'Reactive' : 'Non-Reactive';
             } else {
                 if (val < 9.0) return 'Negative';
                 else if (val > 11.0) return 'Positive';
@@ -195,13 +195,13 @@ function initReportForm() {
             }
         }
         
-        // Check if test already exists in list
-        const exists = testsList.some(item => item.test_name === testName);
+        // Check if test already exists in list for this method
+        const exists = testsList.some(item => item.test_name === testName && (item.test_method || 'ELISA') === method);
         if (exists) {
-            if (!confirm(`"${testName}" is already added. Do you want to overwrite its value?`)) {
+            if (!confirm(`"${testName}" is already added under category ${method}. Do you want to overwrite its value?`)) {
                 return;
             }
-            testsList = testsList.filter(item => item.test_name !== testName);
+            testsList = testsList.filter(item => !(item.test_name === testName && (item.test_method || 'ELISA') === method));
         }
         
         // Add to list
@@ -241,8 +241,8 @@ function initReportForm() {
             
             let badgeClass = 'badge-equivocal';
             const interpLower = (item.interpretation || '').toLowerCase();
-            if (interpLower === 'negative') badgeClass = 'badge-negative';
-            else if (interpLower === 'positive') badgeClass = 'badge-positive';
+            if (interpLower === 'negative' || interpLower === 'non-reactive') badgeClass = 'badge-negative';
+            else if (interpLower === 'positive' || interpLower === 'reactive') badgeClass = 'badge-positive';
             
             tr.innerHTML = `
                 <td><strong>${item.test_name}</strong></td>
