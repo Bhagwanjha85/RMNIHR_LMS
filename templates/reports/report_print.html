@@ -1,0 +1,751 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Report - {{ report.lab_id }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #e8edf2;
+            font-family: 'Times New Roman', Times, serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ── PREVIEW TOOLBAR ── */
+        .toolbar {
+            max-width: 220mm;
+            margin: 18px auto 0;
+            background: #1b285c;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar h2 {
+            color: #fff;
+            font-size: .95rem;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tb-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tpl-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,.12);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: .78rem;
+            color: #eee;
+        }
+
+        .tpl-switch select {
+            background: rgba(255,255,255,.2);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: .78rem;
+            cursor: pointer;
+            transition: background .2s, color .2s;
+        }
+
+        .tpl-switch select:hover,
+        .tpl-switch select:focus {
+            background: #e0f0ff;
+            color: #1b285c;
+            border-color: #90cdf4;
+            outline: none;
+        }
+
+        .tb-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .tb-btn:hover {
+            opacity: .85;
+        }
+
+        .tb-back {
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .3);
+        }
+
+        .tb-edit {
+            background: #1075BD;
+            color: #fff;
+        }
+
+        .tb-print {
+            background: #16a34a;
+            color: #fff;
+        }
+
+        /* ── OUTER WRAPPER ── */
+        .page-wrap {
+            max-width: 220mm;
+            margin: 0 auto 40px;
+            background: #fff;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* ── A4 FRAME ── */
+        .a4 {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 7mm 8mm 6mm;
+            background: #fff;
+            position: relative;
+        }
+
+        /* Outer decorative border */
+        .a4-inner {
+            border: 2.5px solid #1b285c;
+            padding: 4mm 5mm;
+            min-height: 280mm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ── */
+        .report-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 6px;
+        }
+
+        .logo-box {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .logo-box img {
+            max-height: 95px;
+            width: auto;
+            display: block;
+        }
+
+        /* Fallback if logo.png not found */
+        .logo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-text {
+            width: 100%;
+            text-align: center;
+        }
+
+        .header-text .dept-main {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #1b285c;
+            letter-spacing: .5px;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .header-text .dept-sub {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1075BD;
+            margin-top: 3px;
+        }
+
+        .header-text .dept-sponsor {
+            font-size: 8pt;
+            font-style: italic;
+            color: #444;
+            margin-top: 1px;
+        }
+
+        .header-text .dept-address {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #000;
+            margin-top: 2px;
+        }
+
+        /* ── SECTION BORDERS ── */
+        .border-line {
+            border: none;
+            border-top: 2.5px solid #1b285c;
+            margin: 5px -5mm;
+        }
+
+        .border-line-thin {
+            border: none;
+            border-top: 1px solid #555;
+            margin: 5px -5mm;
+        }
+
+        /* ── SECTION TITLE BADGE ── */
+        .section-badge {
+            background: #1b285c;
+            color: #fff;
+            font-size: 7.5pt;
+            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        /* ── PATIENT INFO TABLE ── */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+        }
+
+        .info-table td {
+            padding: 2px 5px;
+            vertical-align: middle;
+            line-height: 1.3;
+        }
+
+        .info-table td.lbl {
+            font-weight: 700;
+            white-space: nowrap;
+            width: 18%;
+            color: #1b285c;
+        }
+
+        .info-table td.val {
+            font-weight: 600;
+            color: #000;
+            text-transform: uppercase;
+            border-bottom: 1px solid #aaa;
+            width: 30%;
+            padding-left: 6px;
+        }
+
+        .info-table td.spacer {
+            width: 4%;
+        }
+
+        /* ── RESULTS TABLE ── */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            font-size: 10pt;
+        }
+
+        .results-table thead tr {
+            background: #1b285c;
+            color: #fff;
+        }
+
+        .results-table thead th {
+            padding: 5px 8px;
+            font-size: 9pt;
+            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+            letter-spacing: .5px;
+            border: 1px solid #1b285c;
+        }
+
+        .results-table thead th.center {
+            text-align: center;
+        }
+
+        .results-table thead th.right {
+            text-align: right;
+        }
+
+        .results-table tbody tr {
+            border-bottom: 1px solid #ccc;
+        }
+
+        .results-table tbody tr:nth-child(even) {
+            background: #f4f7fc;
+        }
+
+        .results-table tbody td {
+            padding: 5px 8px;
+            vertical-align: top;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+        }
+
+        .results-table tbody td.test-name {
+            font-weight: 700;
+            color: #1b285c;
+            width: 32%;
+        }
+
+        .results-table tbody td.interp {
+            text-align: center;
+            width: 38%;
+            color: #333;
+            line-height: 1.5;
+            font-size: 9.5pt;
+        }
+
+        .results-table tbody td.result {
+            text-align: right;
+            font-weight: 700;
+            font-size: 11pt;
+            width: 30%;
+        }
+
+        .results-table tfoot td {
+            border-top: 2px solid #1b285c;
+            padding: 4px 10px;
+            font-size: 8.5pt;
+            color: #555;
+        }
+
+        /* Interpretation badge styling */
+        .badge-neg {
+            color: #166534;
+            background: #dcfce7;
+            padding: 1px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+            font-weight: 700;
+        }
+
+        .badge-pos {
+            color: #991b1b;
+            background: #fee2e2;
+            padding: 1px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+            font-weight: 700;
+        }
+
+        .badge-eqv {
+            color: #92400e;
+            background: #fef3c7;
+            padding: 1px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+            font-weight: 700;
+        }
+
+        /* ── METHOD LINE ── */
+        .method-line {
+            font-size: 9.5pt;
+            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+            text-decoration: underline;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        /* ── SIGNATURES ── */
+        .sig-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 16px;
+        }
+
+        .sig-item {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sig-line-area {
+            height: 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .sig-label {
+            font-size: 8.5pt;
+            font-weight: 700;
+            border-top: 1.5px solid #000;
+            width: 88%;
+            padding-top: 4px;
+            margin-top: 2px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .sig-name {
+            font-size: 8pt;
+            color: #333;
+            margin-top: 1px;
+        }
+
+        /* ── FOOTER NOTE ── */
+        .footer-note {
+            font-size: 7pt;
+            color: #333;
+            line-height: 1.35;
+            border-top: 1.5px solid #1b285c;
+            padding-top: 4px;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .footer-note strong {
+            font-style: normal;
+            color: #000;
+        }
+
+        /* ── PRINT RULES ── */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .page-wrap {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .a4 {
+                padding: 7mm 8mm 6mm !important;
+                width: 100% !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+            }
+
+            .a4-inner {
+                min-height: 280mm !important;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            Print Preview &nbsp;|&nbsp; <span style="opacity:.75;font-weight:400;">Lab ID: {{ report.lab_id }}</span>
+        </h2>
+        <div class="tb-btns">
+            <div class="tpl-switch">
+                <span>Template:</span>
+                <select onchange="window.location.href=this.value;">
+                    <option value="{% url 'view_report' report.pk %}" selected>&#9632; Colored (Default)</option>
+                    <option value="{% url 'view_report_bw' report.pk %}">&#9648; Black &amp; White</option>
+                    <option value="{% url 'view_report_aiims' report.pk %}">&#9707; AIIMS Style</option>
+                </select>
+            </div>
+            <a href="{% url 'dashboard' %}" class="tb-btn tb-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'edit_report' report.pk %}" class="tb-btn tb-edit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Edit
+            </a>
+            <button onclick="window.print()" class="tb-btn tb-print">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print / Save PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- A4 PAGE -->
+    <div class="page-wrap">
+        <div class="a4">
+            <div class="a4-inner">
+
+                <!-- ═══ HEADER ═══ -->
+                <div class="report-header">
+                    <!-- Logo -->
+                    <div class="logo-box">
+                        {% if template_config.logo %}
+                        <img src="{{ template_config.logo.image_base64 }}" alt="{{ template_config.logo.name }}" style="max-height:95px;width:auto;display:block;">
+                        {% else %}
+                        <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo"
+                            onerror="this.style.display='none';document.getElementById('logo-svg').style.display='flex';"
+                            style="max-height:95px;width:auto;display:block;">
+                        <!-- SVG fallback shown if logo.png is missing -->
+                        <div id="logo-svg" class="logo-fallback" style="display:none;">
+                            <svg width="270" height="90" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="45" cy="48" r="42" stroke="#1b285c" stroke-width="3" fill="none" />
+                                <circle cx="45" cy="48" r="37" stroke="#1b285c" stroke-width=".8" stroke-dasharray="3 2"
+                                    fill="none" />
+                                <path d="M45 18 L45 78" stroke="#1b285c" stroke-width="3" stroke-linecap="round" />
+                                <path d="M36 28 C36 46 54 46 54 64" stroke="#1b285c" stroke-width="2.2" fill="none" />
+                                <path d="M54 28 C54 46 36 46 36 64" stroke="#1b285c" stroke-width="2.2" fill="none" />
+                                <text x="45" y="96" font-family="Arial" font-size="9" font-weight="bold" fill="#1b285c"
+                                    text-anchor="middle">ICMR</text>
+                                <line x1="105" y1="10" x2="105" y2="88" stroke="#1b285c" stroke-width="2" />
+                                <text x="116" y="35" font-family="Arial" font-size="24" font-weight="900"
+                                    fill="#1b285c">icmr</text>
+                                <text x="116" y="52" font-family="Arial" font-size="14" font-weight="700"
+                                    fill="#1075BD">RM NIHR</text>
+                                <text x="116" y="65" font-family="Arial" font-size="6.5" fill="#1b285c">INDIAN COUNCIL
+                                    OF MEDICAL RESEARCH</text>
+                                <text x="116" y="76" font-family="Arial" font-size="6" fill="#1075BD">Rajendra Memorial
+                                    National Institute of Health Research</text>
+                            </svg>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- Institute text (Row 2, centered below logo) -->
+                    <div class="header-text">
+                        <div class="dept-main">{{ template_config.dept_main|default:"Viral Research &amp; Diagnostic Laboratories" }}</div>
+                        <div class="dept-sub">{{ template_config.dept_sub|default:"Department of Virology" }}</div>
+                        <div class="dept-sponsor">{{ template_config.dept_sponsor|default:"(Dept. of Health Research Sponsored Medical College Level VRDL)" }}</div>
+                        <div class="dept-address">{{ template_config.dept_address|default:"Agamkuan, Patna, Bihar &ndash; 800007" }}</div>
+                    </div>
+                </div>
+
+                <!-- Dark border below header -->
+                <hr class="border-line">
+
+                <!-- ═══ PATIENT INFORMATION ═══ -->
+                <div class="section-badge">Patient Information</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="lbl">Lab ID</td>
+                        <td class="val">{{ report.lab_id }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Receiving Date</td>
+                        <td class="val">{{ formatted_receiving_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Patient Name</td>
+                        <td class="val" colspan="1">{{ report.patient_name|title }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Reporting Date</td>
+                        <td class="val">{{ formatted_reporting_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Age</td>
+                        <td class="val">{{ report.age_value }} {{ report.get_age_unit_display }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Sex</td>
+                        <td class="val">{{ sex_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">Ref. By</td>
+                        <td class="val">{{ report.ref_by }}</td>
+                        <td class="spacer"></td>
+                        <td class="lbl">Sample Type</td>
+                        <td class="val">{{ report.sample_type }}</td>
+                    </tr>
+                </table>
+
+                <!-- Dark border between patient info and test results -->
+                <hr class="border-line" style="margin-top:10px;">
+
+                <div class="section-badge">Test Results</div>
+
+                {% regroup report.tests.all|dictsort:"test_method" by test_method as test_groups %}
+                {% for group in test_groups %}
+                <div class="test-entry-group" style="margin-top: 15px; margin-bottom: 5px;">
+                    <h3 style="font-size: 11pt; font-weight: bold; color: #000; margin-top: 15px; margin-bottom: 8px; font-family: Arial, Helvetica, sans-serif;">
+                        Method: {{ group.grouper }}
+                    </h3>
+                    <table class="results-table" style="margin-top: 0; margin-bottom: 12px; width: 100%;">
+                        <thead>
+                            <tr>
+                                {% if group.grouper|upper == 'RAPID' %}
+                                <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
+                                <th class="right" style="width: 30%;">Status</th>
+                                {% elif group.grouper|upper == 'RT-PCR' %}
+                                    {% if report.has_rtpcr_value %}
+                                    <th style="text-align:left; width: 50%;">Test / Parameter Name</th>
+                                    <th class="center" style="width: 20%;">Result Value</th>
+                                    <th class="right" style="width: 30%;">Status</th>
+                                    {% else %}
+                                    <th style="text-align:left; width: 70%;">Test / Parameter Name</th>
+                                    <th class="right" style="width: 30%;">Status</th>
+                                    {% endif %}
+                                {% else %}
+                                <th style="text-align:left; width: 35%;">Test / Parameter Name</th>
+                                <th class="center" style="width: 30%;">Interpretation Range</th>
+                                <th class="center" style="width: 15%;">Result Value</th>
+                                <th class="right" style="width: 20%;">Status</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in group.list %}
+                            <tr>
+                                <td class="test-name">{{ test.test_name }}</td>
+                                {% if group.grouper|upper == 'RAPID' %}
+                                <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                    {{ test.interpretation_text|upper }}
+                                </td>
+                                {% elif group.grouper|upper == 'RT-PCR' %}
+                                    {% if report.has_rtpcr_value %}
+                                    <td class="result center" style="text-align: center; color: #000; font-weight: normal; font-size: 10.5pt;">
+                                        {{ test.result_value|default:"-" }}
+                                    </td>
+                                    <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                        {{ test.interpretation_text|upper }}
+                                    </td>
+                                    {% else %}
+                                    <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                        {{ test.interpretation_text|upper }}
+                                    </td>
+                                    {% endif %}
+                                {% else %}
+                                <td class="interp center">
+                                    {{ test.interpretation_range|safe }}
+                                </td>
+                                <td class="result center" style="font-weight: normal; font-size: 10.5pt; text-align: center; color: #000;">
+                                    {{ test.result_value }}
+                                </td>
+                                <td class="result right" style="text-align: right; color: #000; font-weight: bold;">
+                                    {{ test.interpretation_text|upper }}
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
+
+                <div style="font-size: 8.5pt; color: #555; margin-top: 5px; margin-bottom: 20px; font-style: italic; border-top: 1px dashed #ccc; padding-top: 8px;">
+                    Total tests reported: {{ report.tests.count }} &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+                    {% if report.test_method|upper == 'RAPID' or report.test_method|upper == 'RT-PCR' %}
+                    All values are qualitative results.
+                    {% else %}
+                    All values are quantitative OD readings.
+                    {% endif %}
+                </div>
+
+                <!-- ═══ SIGNATURES ═══ -->
+                <div class="sig-section">
+                    <div class="sig-item">
+                        <div class="sig-line-area">
+                            {% if report.show_prepared_by %}
+                            <svg width="96" height="38" viewBox="0 0 96 38">
+                                <path
+                                    d="M8,24 C18,24 22,11 28,14 C34,17 30,27 36,24 C42,21 43,14 48,17 C53,20 50,27 58,24 C63,21 72,19 82,21"
+                                    fill="none" stroke="#003df5" stroke-width="1.7" stroke-linecap="round" />
+                                <path d="M18,21 Q40,24 68,22" fill="none" stroke="#003df5" stroke-width=".9"
+                                    stroke-linecap="round" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="sig-label">{{ report.prepared_by_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-line-area">
+                            {% if report.show_technician %}
+                            <svg width="96" height="38" viewBox="0 0 96 38">
+                                <path
+                                    d="M12,21 C18,9 30,7 36,19 C42,31 33,34 43,21 C53,9 58,11 63,21 C68,31 73,29 83,24"
+                                    fill="none" stroke="#003df5" stroke-width="1.7" stroke-linecap="round" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="sig-label">{{ report.technician_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-line-area">
+                            {% if report.show_scientist %}
+                            <svg width="96" height="38" viewBox="0 0 96 38">
+                                <path
+                                    d="M10,27 C16,19 20,11 26,14 C32,17 28,31 36,23 C44,15 48,17 53,25 C58,33 66,21 76,27 C80,29 86,24 90,19"
+                                    fill="none" stroke="#003df5" stroke-width="1.7" stroke-linecap="round" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="sig-label">{{ report.scientist_name }}</div>
+                    </div>
+                    <div class="sig-item">
+                        <div class="sig-line-area">
+                            {% if report.show_vc %}
+                            <img src="{% static 'signature_ic.png' %}" alt="Signature of I/C" style="max-height: 38px; width: auto; display: block; margin: 0 auto;">
+                            {% endif %}
+                        </div>
+                        <div class="sig-label">{% if report.vc_title == 'Signature of VC' %}Signature of I/C{% else %}{{ report.vc_title }}{% endif %}</div>
+                        <div class="sig-name">({{ report.vc_name }})</div>
+                    </div>
+                </div>
+
+                <!-- ═══ FOOTER NOTE ═══ -->
+                <div class="footer-note">
+                    <strong>Note:</strong> {{ report.notes }}
+                </div>
+
+            </div><!-- a4-inner -->
+        </div><!-- a4 -->
+    </div><!-- page-wrap -->
+
+</body>
+
+</html>

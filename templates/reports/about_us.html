@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About Us - RMNIHR Reporting System{% endblock %}
+{% block content %}
+<div class="about-container" style="width: 90%; max-width: 1400px; margin: 0 auto; padding: 1.5rem 0; display: flex; flex-direction: column; gap: 2.5rem;">
+    <!-- Page Header -->
+    <div class="card" style="margin-bottom: 0; padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(27, 40, 92, 0.1), rgba(16, 117, 189, 0.1)); border: 1px solid var(--glass-border); border-radius: var(--border-radius); text-align: center; opacity: 1; transform: none;">
+        <h1 style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">About Our Project &amp; Department</h1>
+        <p style="font-size: 1.15rem; color: var(--text-muted); font-weight: 500;">Viral Research &amp; Diagnostic Laboratories (VRDL), Department of Virology, ICMR-RMNIHR, Patna</p>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+        
+        <!-- Section 1: The Software Project -->
+        <div class="card" style="margin-bottom: 0; opacity: 1; transform: none;">
+            <h2 class="card-title" style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                The Lab Management &amp; Reporting System (LMS)
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; align-items: stretch;">
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">What is this Software?</h3>
+                    <p style="color: var(--text-main); font-size: 1rem; line-height: 1.6;">
+                        This software is a custom-built <strong>Laboratory Management and Daily Reporting System</strong> designed specifically for the Viral Research &amp; Diagnostic Laboratories (VRDL) at the Division of Virology, ICMR-RMNIHR. It provides a secure, efficient, and centralized platform to log, manage, edit, analyze, and generate professional diagnostic reports for more than 30 human pathogenic viruses of public health significance.
+                    </p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Why we made this Software?</h3>
+                    <p style="color: var(--text-main); font-size: 1rem; line-height: 1.6;">
+                        To overcome the manual inefficiencies of administrative tasks and hand-signed physical workflows during large-scale patient screenings. By establishing standard test protocols, integrating a dynamic test builder, facilitating secure OTP-based logins/password resets, enabling rapid Excel bulk uploads, and auto-calculating real-time epidemiological metrics, this LMS helps track viral patterns rapidly and accurately while serving vital public health decisions.
+                    </p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(16, 117, 189, 0.05); border-radius: 12px; border-left: 4px solid var(--secondary);">
+                <p style="font-size: 0.95rem; font-weight: 600; color: var(--primary);">
+                    <strong>Project Duration:</strong> 1 Month (Fast-tracked development for rapid deployment under high-security guidelines).
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 2: Step-by-Step Software Workflow -->
+        <div class="card" style="margin-bottom: 0; opacity: 1; transform: none;">
+            <h2 class="card-title" style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                Software Project Workflow
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+                <!-- Step 1 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">01</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Secure Auth &amp; OTP</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Admins and Super Admins login securely. Features multi-layered verification, Brevo API-powered email OTP codes, password recovery, and automatic session logouts on inactivity.
+                    </p>
+                </div>
+                <!-- Step 2 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">02</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Admin Configurations</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Super Admins configure test parameters, clinical methods, add authorized technicians, upload official department logos, and set header layouts dynamically.
+                    </p>
+                </div>
+                <!-- Step 3 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">03</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Patient Logging</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Technicians log patient details (Lab ID, Age, Sex, Referring Hospital, and Sample Type) alongside multi-test diagnostics using a dynamic interactive form builder.
+                    </p>
+                </div>
+                <!-- Step 4 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">04</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Report Customization</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Preview and export reports in Color or B&amp;W. Configure signature options dynamically (Prepared By, Technician, Scientist, and I/C) for a rigorous approval process.
+                    </p>
+                </div>
+                <!-- Step 5 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">05</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Bulk Excel Upload</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Process bulk patient files via structured Excel sheets. Automate parsing and batch inserts directly to sqlite database to minimize manual transcription.
+                    </p>
+                </div>
+                <!-- Step 6 -->
+                <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='none'">
+                    <div style="position: absolute; right: 10px; top: 10px; font-size: 3rem; font-weight: 800; color: rgba(16, 117, 189, 0.1); line-height: 1;">06</div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">Real-time Analytics</h3>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; z-index: 1;">
+                        Dashboard displays total sample statistics, positivity ratios, daily registration charts, sample breakdown, and administrator actions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: About the Department -->
+        <div class="card" style="margin-bottom: 0; opacity: 1; transform: none;">
+            <h2 class="card-title" style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                Division of Virology, ICMR-RMNIHR
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <p style="color: var(--text-main); font-size: 1.05rem; line-height: 1.7;">
+                    The laboratory was established on <strong>3rd December 2012</strong>. The Division of Virology at ICMR-Rajendra Memorial Research Institute of Medical Sciences (RMRIMS, now part of NIHR) performs basic and applied research in virology and associated pathogens. Our research focuses on molecular virology of Respiratory viruses, Flaviviruses, Gastroenteritis viruses, Oncogenic Viruses, and more. Because understanding transmission matters, we track viral variation alongside human immune responses during infections to support critical public health decisions.
+                </p>
+                
+                <p style="color: var(--text-main); font-size: 1.05rem; line-height: 1.7;">
+                    As a state-of-the-art facility operating round-the-clock, the lab profiles and tracks more than 30 human pathogenic viruses. During the emergence of SARS-CoV-2 in 2020, staff swiftly launched the first PCR-based screening in Bihar, trained regional laboratories, and validated rapid diagnostic test kits. Designated as a key NACO confirmation and viral load detection hub, it serves as a central pillar for regional pandemic and disease monitoring.
+                </p>
+
+                <!-- Grid of Facilities & Achievements -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 1rem;">
+                    <!-- Facilities -->
+                    <div style="background: rgba(16, 117, 189, 0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+                            Key Facilities &amp; Equipment
+                        </h3>
+                        <ul style="display: flex; flex-direction: column; gap: 8px; padding-left: 1.25rem; margin: 0; color: var(--text-main);">
+                            <li style="font-size: 0.95rem; line-height: 1.4;">COBAS 6800 / COBAS 5800 High-Throughput System</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">Next-Generation Sequencing (NGS - Illumina MiSeq)</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">Fluorescence Inverted &amp; Upright Microscopes</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">Bio-Safety Cabinet BSL-II Plus &amp; Incubators (CO2, BOD)</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">Gradient, Real-Time (RT-PCR), &amp; Conventional PCRs</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">ELISA Reader &amp; Washer</li>
+                            <li style="font-size: 0.95rem; line-height: 1.4;">Cold Storage &amp; Centrifuges (-20&deg;C &amp; -80&deg;C Deep Freezers)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Achievements -->
+                    <div style="background: rgba(16, 117, 189, 0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+                            Key Achievements
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="font-size: 1.5rem; line-height: 1;">🥇</div>
+                                <div>
+                                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">Gold Medal in VRDL (2025)</h4>
+                                    <p style="font-size: 0.88rem; color: var(--text-muted);">Conferred by the Department of Health Research (DHR) Conclave 2025 in recognition of exceptional diagnostic excellence.</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                <div style="font-size: 1.5rem; line-height: 1;">🦠</div>
+                                <div>
+                                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary);">21+ Lakh COVID-19 Samples</h4>
+                                    <p style="font-size: 0.88rem; color: var(--text-muted);">Instrumental diagnostic support throughout the pandemic, analyzing massive sample volumes for Bihar and neighboring states.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Project Contributors -->
+        <div class="card" style="margin-bottom: 0; opacity: 1; transform: none;">
+            <h2 class="card-title" style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+                Project Contributors
+            </h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <!-- Head of the Division -->
+                <div style="background: linear-gradient(135deg, rgba(16, 117, 189, 0.08), rgba(27, 40, 92, 0.05)); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                    <img src="{% static 'images/contributor3.jpg' %}" alt="Dr. Ganesh Chandra Sahoo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--secondary); box-shadow: var(--box-shadow);">
+                    <div>
+                        <span style="font-size: 0.8rem; background: var(--secondary); color: white; padding: 3px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Head of the Division</span>
+                        <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 4px; margin-bottom: 2px;">Dr. Ganesh Chandra Sahoo, Ph.D.</h3>
+                        <p style="font-size: 0.95rem; color: var(--text-muted); font-weight: 600;">Scientist-F</p>
+                    </div>
+                </div>
+
+                <!-- Staff & Fellows Grid -->
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 1.25rem;">
+                        Division Staff &amp; Research Fellows
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+                        
+                        <!-- Dr. Bipin Bihari Mishra -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <img src="{% static 'images/contributor4.jpg' %}" alt="Dr. Bipin Bihari Mishra" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--secondary);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Dr. Bipin Bihari Mishra, PhD</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Research Scientist-I</p>
+                            </div>
+                        </div>
+
+                        <!-- Dr. Kanak Raj Kanak Ji -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 45px; height: 45px; border-radius: 50%; background: rgba(16, 117, 189, 0.15); padding: 8px; display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%; color: var(--secondary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Dr. Kanak Raj Kanak, PhD</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Research Scientist-I</p>
+                            </div>
+                        </div>
+
+                        <!-- Mr. Neetesh Jindal -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <img src="{% static 'images/contributor6.jpeg' %}" alt="Mr. Neetesh Jindal" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--secondary);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Mr. Neetesh Jindal</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Research Assistant</p>
+                            </div>
+                        </div>
+
+                        <!-- Mr. Rajendra Kumar -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <img src="{% static 'images/contributor5.jpg' %}" alt="Mr. Rajendra Kumar" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--secondary);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Mr. Rajendra Kumar</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Lab Technician</p>
+                            </div>
+                        </div>
+
+                        <!-- Mr. Sumit Shrivastav -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 45px; height: 45px; border-radius: 50%; background: rgba(16, 117, 189, 0.15); padding: 8px; display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%; color: var(--secondary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Mr. Sumit Shrivastav</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Data Entry Operator (DEO)</p>
+                            </div>
+                        </div>
+
+                        <!-- Rakesh DH -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 45px; height: 45px; border-radius: 50%; background: rgba(16, 117, 189, 0.15); padding: 8px; display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%; color: var(--secondary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Rakesh DH</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">INSA SRFP 2026 Fellow</p>
+                            </div>
+                        </div>
+
+                        <!-- Banamali Sahu -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <img src="{% static 'images/contributor1.png' %}" alt="Banamali Sahu" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--secondary);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Banamali Sahu</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">INSA SRFP 2026 Fellow</p>
+                            </div>
+                        </div>
+
+                        <!-- Bhagwan Ji Jha -->
+                        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                            <img src="{% static 'images/contributor2.jpeg' %}" alt="Bhagwan Jha" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--secondary);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary);">Bhagwan Ji Jha</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">INSA SRFP 2026 Fellow</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Back button -->
+    <div style="display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 0.8rem 2rem; border-radius: 12px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

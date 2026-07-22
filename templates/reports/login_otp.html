@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Verify OTP - RMNIHR Reporting System{% endblock %}
+{% block content %}
+<style>
+    /* Full screen login viewport */
+    .login-viewport {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #0b132b;
+        overflow-y: auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Background VIDEO */
+    .login-bg-video {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        filter: brightness(0.9) contrast(1.05);
+        pointer-events: none;
+    }
+
+    /* Glassmorphic card */
+    .login-glass-card {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 500px;
+        background: rgba(235, 234, 234, 0.943);
+        backdrop-filter: blur(32px) saturate(200%);
+        -webkit-backdrop-filter: blur(32px) saturate(200%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 22px;
+        padding: 2.5rem 2.8rem 2.2rem;
+        box-shadow:
+            0 30px 60px -12px rgba(100, 99, 99, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        animation: loginFadeUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        margin: 1rem;
+    }
+
+    @keyframes loginFadeUp {
+        from { opacity: 0; transform: translateY(28px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo + header row side-by-side */
+    .login-top-row {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        margin-bottom: 0.9rem;
+    }
+    .login-header-logo { flex-shrink: 0; }
+    .login-logo-img {
+        height: 60px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 0 12px rgba(0,0,0,0.15));
+    }
+    .login-header-text { flex: 1; }
+
+    /* Title */
+    .login-title-h1 {
+        font-size: 1.45rem;
+        font-weight: 800;
+        margin: 0 0 0.2rem;
+        color: #0c2461;
+        letter-spacing: -0.3px;
+    }
+    .login-subtitle-p {
+        color: #4a5568;
+        font-size: 0.82rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    /* Live clock bar */
+    .login-clock-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #1075bd, #0c4a6e);
+        border-radius: 8px;
+        padding: 0.4rem 1rem;
+        margin-bottom: 0.85rem;
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        box-shadow: 0 4px 14px rgba(16, 117, 189, 0.3);
+    }
+
+    /* Divider */
+    .login-divider {
+        border: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        margin: 0 0 1.5rem;
+    }
+
+    /* Field labels */
+    .login-label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.45rem;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    /* Inputs */
+    .login-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1.5px solid rgba(16, 117, 189, 0.35);
+        border-radius: 12px;
+        padding: 0.88rem 1rem;
+        color: #1a202c;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-align: center;
+        transition: all 0.22s ease;
+        outline: none;
+    }
+    .login-input:focus {
+        background: #ffffff;
+        border-color: #1075bd;
+        box-shadow: 0 0 0 4px rgba(16, 117, 189, 0.18);
+    }
+    .login-input::placeholder { color: #a0aec0; letter-spacing: normal; font-weight: normal; font-size: 1rem; }
+
+    .login-field-group { margin-bottom: 1.4rem; }
+
+    /* Submit button */
+    .login-btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #1075bd 0%, #0c4a6e 100%);
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 0.95rem;
+        cursor: pointer;
+        transition: all 0.28s ease;
+        margin-top: 0.6rem;
+        box-shadow: 0 5px 22px rgba(16, 117, 189, 0.35);
+    }
+    .login-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(56, 189, 248, 0.48);
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    }
+    .login-btn-submit:active { transform: translateY(0); }
+
+    /* Error alert */
+    .login-error-alert {
+        background: whitesmoke !important;
+        border: 1.5px solid #feb2b2 !important;
+        color: #e53e3e !important;
+        padding: 0.95rem 1.2rem;
+        border-radius: 12px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .otp-info-text {
+        font-size: 0.9rem;
+        color: #4a5568;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .otp-email-highlight {
+        font-weight: 700;
+        color: #0c2461;
+    }
+</style>
+
+<div class="login-viewport">
+    <!-- Looping video background -->
+    <video class="login-bg-video" autoplay muted loop playsinline>
+        <source src="{% static 'login.mp4' %}" type="video/mp4">
+    </video>
+
+    <!-- Glass card -->
+    <div class="login-glass-card">
+        <!-- Top Row: Logo & Title text side-by-side -->
+        <div class="login-top-row">
+            <div class="login-header-logo">
+                <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="login-logo-img">
+            </div>
+            <div class="login-header-text">
+                <h1 class="login-title-h1">OTP Verification</h1>
+                <p class="login-subtitle-p">Confirm login for {{ user.first_name|default:user.username }}</p>
+            </div>
+        </div>
+
+        <!-- Live date & time bar -->
+        <div class="login-clock-bar" id="login-clock-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="login-clock-text">Loading...</span>
+        </div>
+
+        <hr class="login-divider">
+
+        <div id="login-form-section">
+            {% if error %}
+            <div class="login-error-alert" id="backend-error-alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                     <circle cx="12" cy="12" r="10"/>
+                     <line x1="12" y1="8" x2="12" y2="12"/>
+                     <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <p class="otp-info-text">
+                A verification code (OTP) has been sent to your registered email address:<br>
+                <span class="otp-email-highlight">{{ masked_email }}</span>
+            </p>
+
+            <form method="POST" action="{% url 'admin_login_otp' %}" id="otp-form">
+                {% csrf_token %}
+                <div class="login-field-group">
+                    <label class="login-label" for="otp">Enter 6-Digit OTP</label>
+                    <input class="login-input" type="text" id="otp" name="otp"
+                           placeholder="••••••" maxlength="6" pattern="\d{6}" required autocomplete="one-time-code" autofocus>
+                </div>
+
+                <button type="submit" class="login-btn-submit" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    VERIFY &amp; SIGN IN
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+            </form>
+
+            <div style="text-align:center; margin-top:1.5rem;">
+                <a href="{% url 'login' %}"
+                   style="color:#6b7280; font-size:0.85rem; font-weight:600; text-decoration:none; opacity:0.9; display: inline-flex; align-items: center; gap: 4px;">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                   Back to Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function updateLoginClock() {
+            var el = document.getElementById('login-clock-text');
+            if (!el) return;
+            var now = new Date();
+            var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var day = days[now.getDay()];
+            var date = now.getDate();
+            var month = months[now.getMonth()];
+            var year = now.getFullYear();
+            var h = now.getHours();
+            var m = String(now.getMinutes()).padStart(2, '0');
+            var s = String(now.getSeconds()).padStart(2, '0');
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            el.textContent = day + ', ' + date + ' ' + month + ' ' + year + '  |  ' + h + ':' + m + ':' + s + ' ' + ampm;
+        }
+        updateLoginClock();
+        setInterval(updateLoginClock, 1000);
+    })();
+</script>
+
+<script>
+    document.addEventListener('contextmenu', function (e) { e.preventDefault(); return false; });
+    document.addEventListener('keydown', function (e) {
+        if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+            (e.ctrlKey && ['U','S','P'].includes(e.key.toUpperCase()))
+        ) { e.preventDefault(); return false; }
+    });
+</script>
+{% endblock %}

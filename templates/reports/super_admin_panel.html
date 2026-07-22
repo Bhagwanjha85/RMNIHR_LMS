@@ -1,0 +1,557 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Super Admin Panel - RMNIHR Reporting System{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Page Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: var(--primary); margin: 0;">Super Admin Panel</h1>
+            <p style="color: var(--text-muted); margin: 0.25rem 0 0 0; font-size: 0.95rem;">Configure test methods, cutoffs, and result interpretation rules</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div style="margin-bottom: 1.5rem;">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" style="padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 0.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            {% if message.tags == 'success' %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #22c55e;"><polyline points="20 6 9 17 4 12"/></svg>
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
+        <!-- Left Column: Add / Edit Config Form -->
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                {% if editing_config %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit Test Configuration
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Add Test Configuration
+                {% endif %}
+            </h3>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save">
+                {% if editing_config %}
+                <input type="hidden" name="config_id" value="{{ editing_config.pk }}">
+                {% endif %}
+
+                <!-- Method Select / Other -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Test Method *</label>
+                    <select name="test_method" id="test_method_select" class="form-control" required style="width: 100%;" onchange="toggleOtherMethodField(this.value)">
+                        <option value="">-- Select Method --</option>
+                        {% for m in existing_methods %}
+                        <option value="{{ m }}" {% if editing_config.test_method == m %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                        <option value="OTHER" {% if editing_config and editing_config.test_method not in existing_methods %}selected{% endif %}>+ Add New Method</option>
+                    </select>
+                </div>
+
+                <!-- Custom Method Text Field (hidden by default) -->
+                <div class="form-group" id="other_method_group" style="margin-bottom: 1.25rem; display: none;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Specify Custom Method Name *</label>
+                    <input type="text" name="other_method" class="form-control" placeholder="e.g. PCR, BIO-RAD" style="width: 100%;">
+                </div>
+
+                <!-- Test Name Datalist -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Test Name *</label>
+                    <input type="text" name="test_name" class="form-control" list="test_names_list" placeholder="Select or type test name" required value="{{ editing_config.test_name|default:'' }}" style="width: 100%;">
+                    <datalist id="test_names_list">
+                        {% for name in all_names %}
+                        <option value="{{ name }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+
+                <!-- Result Type Selector -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Result Type *</label>
+                    <select name="result_type" id="result_type_select" class="form-control" required style="width: 100%;" onchange="toggleCutoffFields(this.value)">
+                        <option value="numeric" {% if editing_config.result_type == 'numeric' %}selected{% endif %}>Numerical Result (with Cutoffs)</option>
+                        <option value="positive_negative" {% if editing_config.result_type == 'positive_negative' %}selected{% endif %}>Positive / Negative (2 options)</option>
+                        <option value="select" {% if editing_config.result_type == 'select' %}selected{% endif %}>Positive / Negative / Equivocal (3 options)</option>
+                        <option value="reactive_non_reactive" {% if editing_config.result_type == 'reactive_non_reactive' %}selected{% endif %}>Reactive / Non-Reactive (2 options)</option>
+                        <option value="custom_dropdown" {% if editing_config.result_type == 'custom_dropdown' %}selected{% endif %}>Custom Dropdown Choices</option>
+                    </select>
+                </div>
+
+                <!-- Custom Options field (hidden by default) -->
+                <div class="form-group" id="custom_options_group" style="margin-bottom: 1.25rem; display: none;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Custom Dropdown Choices *</label>
+                    <input type="text" name="custom_options" id="custom_options_input" class="form-control" placeholder="e.g. Weak Positive, Strong Positive, Negative" value="{{ editing_config.custom_options|default:'' }}" style="width: 100%;">
+                    <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                        Enter choice options separated by commas.
+                    </span>
+                </div>
+
+                <!-- Cutoff Values -->
+                <div id="cutoff_fields_container" style="display: block;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Cutoff (Lower)</label>
+                            <input type="number" step="0.0001" name="cutoff_value" id="cutoff_value_input" class="form-control" placeholder="e.g. 0.191" value="{{ editing_config.cutoff_value|default:'' }}" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Cutoff (Upper)</label>
+                            <input type="number" step="0.0001" name="cutoff_value_upper" id="cutoff_value_upper_input" class="form-control" placeholder="e.g. 0.500 (Optional)" value="{{ editing_config.cutoff_value_upper|default:'' }}" style="width: 100%;">
+                        </div>
+                    </div>
+                    <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: -0.75rem; margin-bottom: 1.25rem; line-height: 1.4;">
+                        If only Cutoff (Lower) is defined, results &ge; Cutoff are "Positive", and &lt; Cutoff are "Negative".<br>
+                        If both are defined, results &lt; Lower are "Negative", between Lower and Upper are "Equivocal", and &ge; Upper are "Positive".
+                    </span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                    <button type="submit" class="btn-primary" style="flex: 1; padding: 0.85rem; border-radius: 10px; font-weight: 700;">
+                        {% if editing_config %}Save Changes{% else %}Create Configuration{% endif %}
+                    </button>
+                    {% if editing_config %}
+                    <a href="{% url 'super_admin_panel' %}" class="btn-secondary" style="padding: 0.85rem; border-radius: 10px; text-decoration: none; text-align: center;">
+                        Cancel
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column: Existing Configs Table -->
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary);">Configured Tests &amp; Interpretations</h3>
+            
+            {% if configs %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem;">
+                            <th style="padding: 0.85rem 0.5rem; font-weight: 700; color: var(--text-dark); font-size: 0.85rem; text-transform: uppercase;">Method</th>
+                            <th style="padding: 0.85rem 0.5rem; font-weight: 700; color: var(--text-dark); font-size: 0.85rem; text-transform: uppercase;">Test Name</th>
+                            <th style="padding: 0.85rem 0.5rem; font-weight: 700; color: var(--text-dark); font-size: 0.85rem; text-transform: uppercase;">Result Type</th>
+                            <th style="padding: 0.85rem 0.5rem; font-weight: 700; color: var(--text-dark); font-size: 0.85rem; text-transform: uppercase;">Cutoff Values</th>
+                            <th style="padding: 0.85rem 0.5rem; font-weight: 700; color: var(--text-dark); font-size: 0.85rem; text-transform: uppercase; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in configs %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                            <td style="padding: 1rem 0.5rem; font-weight: 600; color: var(--text-dark);">
+                                <span style="background: rgba(16,117,189,0.08); color: var(--primary); padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700;">{{ c.test_method }}</span>
+                            </td>
+                            <td style="padding: 1rem 0.5rem; font-weight: 700; color: var(--text-dark);">{{ c.test_name }}</td>
+                            <td style="padding: 1rem 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                                {% if c.result_type == 'numeric' %}
+                                Numerical
+                                {% elif c.result_type == 'positive_negative' %}
+                                Pos/Neg (2 options)
+                                {% else %}
+                                Pos/Neg/Equiv (3 options)
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem 0.5rem; font-weight: 600; color: var(--text-dark);">
+                                {% if c.result_type == 'numeric' %}
+                                    {% if c.cutoff_value_upper %}
+                                        L: {{ c.cutoff_value }} | U: {{ c.cutoff_value_upper }}
+                                    {% else %}
+                                        &ge; {{ c.cutoff_value }}
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">N/A (Dropdown)</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem 0.5rem; text-align: right;">
+                                <div style="display: inline-flex; gap: 8px;">
+                                    <a href="?edit={{ c.pk }}" class="btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.85rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        Edit
+                                    </a>
+                                    
+                                    <form method="POST" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete interpretation rules for {{ c.test_name }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="config_id" value="{{ c.pk }}">
+                                        <button type="submit" style="padding: 0.45rem 0.75rem; font-size: 0.85rem; border-radius: 6px; border: 1.5px solid #fecaca; background: #fff5f5; color: #dc2626; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if configs.has_other_pages %}
+            <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
+                <div class="page-info" style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
+                    Showing page <strong style="color: var(--text-main);">{{ configs.number }}</strong> of <strong style="color: var(--text-main);">{{ configs.paginator.num_pages }}</strong>
+                </div>
+                <div class="page-controls" style="display: flex; gap: 8px;">
+                    {% if configs.has_previous %}
+                    <a href="?page=1{% if added_admins %}&admin_page={{ added_admins.number }}{% endif %}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="First Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                    </a>
+                    <a href="?page={{ configs.previous_page_number }}{% if added_admins %}&admin_page={{ added_admins.number }}{% endif %}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Previous Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </a>
+                    {% else %}
+                    <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg></span>
+                    <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></span>
+                    {% endif %}
+                    
+                    <span style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(16,117,189,0.2);">
+                        {{ configs.number }}
+                    </span>
+                    
+                    {% if configs.has_next %}
+                    <a href="?page={{ configs.next_page_number }}{% if added_admins %}&admin_page={{ added_admins.number }}{% endif %}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Next Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </a>
+                    <a href="?page={{ configs.paginator.num_pages }}{% if added_admins %}&admin_page={{ added_admins.number }}{% endif %}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Last Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+                    </a>
+                    {% else %}
+                    <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+                    <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg></span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div style="text-align: center; padding: 3rem 1rem; border: 2px dashed var(--border-color); border-radius: 12px; color: var(--text-muted);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #cbd5e1; margin-bottom: 1rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p style="margin: 0; font-weight: 600; font-size: 1.05rem;">No configurations defined yet</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.88rem;">Use the form on the left to add test cutoff limits and interpretation parameters.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Logo Management Section -->
+    <div class="card scroll-animated" style="margin-top: 2rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Navbar Logo Management
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -0.5rem; margin-bottom: 1.5rem;">Upload new brand logos to be displayed in the system navbar alongside the default logo. You can upload multiple logos and delete them at any time.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <!-- Upload Form -->
+            <div>
+                <form method="POST" enctype="multipart/form-data" style="background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--border-color);">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_logo">
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Choose Logo Image *</label>
+                        <input type="file" name="logo_file" accept="image/*" class="form-control" required style="width: 100%; padding: 0.5rem; background: var(--bg-input);">
+                        <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Supports PNG, JPG, GIF, WebP or SVG format.
+                        </span>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="width: 100%; padding: 0.65rem; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; background: var(--primary); color: #fff;">
+                        Upload Logo
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Uploaded Logos List -->
+            <div>
+                <h4 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--text-dark);">Uploaded Logos</h4>
+                
+                {% if all_logos %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem;">
+                    {% for l in all_logos %}
+                    <div style="border: 1px solid var(--border-color); padding: 1rem; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px; background: var(--card-bg);">
+                        <div style="height: 60px; display: flex; align-items: center; justify-content: center; width: 100%;">
+                            <img src="{{ l.image_base64 }}" alt="{{ l.name }}" style="max-height: 50px; max-width: 100%; object-fit: contain;">
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); word-break: break-all; display: block; max-width: 100%;">{{ l.name }}</span>
+                        
+                        <div style="display: flex; gap: 6px; width: 100%;">
+                            <!-- Replace Form -->
+                            <form method="POST" enctype="multipart/form-data" style="margin: 0; flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="replace_logo">
+                                <input type="hidden" name="logo_id" value="{{ l.pk }}">
+                                <label class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0.4rem; font-size: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; background: #0284c7; color: white; text-align: center; width: 100%;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                                    Replace
+                                    <input type="file" name="logo_file" accept="image/*" style="display: none;" onchange="this.form.submit()">
+                                </label>
+                            </form>
+
+                            <!-- Delete Form -->
+                            <form method="POST" style="margin: 0; flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_logo">
+                                <input type="hidden" name="logo_id" value="{{ l.pk }}">
+                                <button type="submit" class="btn-danger" style="width: 100%; padding: 0.4rem; font-size: 0.75rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;" onclick="return confirm('Are you sure you want to delete this logo?');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 2rem 1rem; border: 1px dashed var(--border-color); border-radius: 12px; color: var(--text-muted); font-size: 0.9rem;">
+                    No custom logos uploaded yet.
+                </div>
+                {% endif %}
+            </div>
+    </div>
+
+    <!-- Report Template Header Configuration -->
+    <div class="card scroll-animated" style="margin-top: 2rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Report Template Customization
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Configure the header titles, address, and select the logo to be used on the printable patient test reports.</p>
+        
+        <form method="POST" action="{% url 'update_template_config' %}">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Department Main Title</label>
+                    <input type="text" name="dept_main" class="form-control" style="width: 100%;" value="{{ template_config.dept_main }}" required>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Department Sub Title</label>
+                    <input type="text" name="dept_sub" class="form-control" style="width: 100%;" value="{{ template_config.dept_sub }}" required>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Sponsor Info Text</label>
+                    <input type="text" name="dept_sponsor" class="form-control" style="width: 100%;" value="{{ template_config.dept_sponsor }}" required>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Department Address</label>
+                    <input type="text" name="dept_address" class="form-control" style="width: 100%;" value="{{ template_config.dept_address }}" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--text-dark);">Report Header Logo</label>
+                    <select name="logo_id" class="form-control" style="width: 100%;">
+                        <option value="">-- Use Default Logo --</option>
+                        {% for l in all_logos %}
+                        <option value="{{ l.pk }}" {% if template_config.logo.pk == l.pk %}selected{% endif %}>{{ l.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn-primary" style="padding: 0.65rem 2rem; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; background: var(--primary); color: #fff;">
+                        Save Template Settings
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Admin User Management Section -->
+    <div class="card scroll-animated" style="margin-top: 2rem;">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Admin User Management
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Create new administrator accounts with their name, email, username, and password. Configured admins can log in using their username or email, along with their secure password.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <!-- Add Admin Form -->
+            <div id="admin-form-anchor">
+                <h4 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    {% if editing_admin %}Edit Admin: {{ editing_admin.username }}{% else %}Add New Admin{% endif %}
+                </h4>
+                <form method="POST" action="{% url 'add_admin' %}" style="background: var(--bg-main); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                    {% csrf_token %}
+                    {% if editing_admin %}
+                    <input type="hidden" name="admin_id" value="{{ editing_admin.pk }}">
+                    {% endif %}
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.4rem; color: var(--text-dark);">Full Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required style="width: 100%;" value="{% if editing_admin %}{{ editing_admin.first_name }}{% endif %}">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.4rem; color: var(--text-dark);">Email ID *</label>
+                        <input type="email" name="email" class="form-control" placeholder="e.g. john@example.com" required style="width: 100%;" value="{% if editing_admin %}{{ editing_admin.email }}{% endif %}">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.4rem; color: var(--text-dark);">Username *</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. johndoe" required style="width: 100%;" value="{% if editing_admin %}{{ editing_admin.username }}{% endif %}">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; margin-bottom: 0.4rem; color: var(--text-dark);">
+                            Password {% if editing_admin %}(Leave blank to keep current){% else %}*{% endif %}
+                        </label>
+                        <input type="password" name="password" class="form-control" placeholder="{% if editing_admin %}Enter new password if changing{% else %}Enter password{% endif %}" {% if not editing_admin %}required{% endif %} style="width: 100%;">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="width: 100%; padding: 0.65rem; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; background: var(--primary); color: #fff;">
+                        {% if editing_admin %}Update Admin{% else %}Add Admin{% endif %}
+                    </button>
+                    {% if editing_admin %}
+                    <a href="{% url 'super_admin_panel' %}" style="display: block; text-align: center; margin-top: 0.65rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-decoration: none;">Cancel Edit</a>
+                    {% endif %}
+                </form>
+            </div>
+            
+            <!-- Created Admins List -->
+            <div>
+                <h4 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1rem; font-weight: 700; color: var(--text-dark);">Configured Admin Users</h4>
+                
+                {% if added_admins %}
+                <div class="table-responsive" style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--bg-card);">
+                    <table class="data-table" style="margin: 0; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Email ID</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for admin in added_admins %}
+                            <tr>
+                                <td style="font-weight: 600; color: var(--text-dark);">{{ admin.first_name }}</td>
+                                <td><span style="font-family: monospace; font-weight: 700; color: var(--secondary);">{{ admin.username }}</span></td>
+                                <td>{{ admin.email }}</td>
+                                <td style="text-align: right; display: flex; justify-content: flex-end; align-items: center; gap: 6px;">
+                                    <a href="?edit_admin={{ admin.pk }}#admin-form-anchor" class="btn-primary" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; background: var(--primary); color: #fff;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+                                        Edit
+                                    </a>
+                                    <form method="POST" action="{% url 'delete_admin' admin.pk %}" style="margin: 0; display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-danger" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="return confirm('Are you sure you want to delete this admin account?');">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if added_admins.has_other_pages %}
+                <div class="pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
+                    <div class="page-info" style="font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
+                        Showing page <strong style="color: var(--text-main);">{{ added_admins.number }}</strong> of <strong style="color: var(--text-main);">{{ added_admins.paginator.num_pages }}</strong>
+                    </div>
+                    <div class="page-controls" style="display: flex; gap: 8px;">
+                        {% if added_admins.has_previous %}
+                        <a href="?page={{ configs.number }}&admin_page=1{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="First Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+                        </a>
+                        <a href="?page={{ configs.number }}&admin_page={{ added_admins.previous_page_number }}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Previous Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </a>
+                        {% else %}
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg></span>
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></span>
+                        {% endif %}
+                        
+                        <span style="display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border-radius: 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(16,117,189,0.2);">
+                            {{ added_admins.number }}
+                        </span>
+                        
+                        {% if added_admins.has_next %}
+                        <a href="?page={{ configs.number }}&admin_page={{ added_admins.next_page_number }}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Next Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                        <a href="?page={{ configs.number }}&admin_page={{ added_admins.paginator.num_pages }}{% if editing_config %}&edit={{ editing_config.pk }}{% endif %}{% if editing_admin %}&edit_admin={{ editing_admin.pk }}{% endif %}" class="btn-icon" title="Last Page">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+                        </a>
+                        {% else %}
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+                        <span class="btn-icon" style="opacity: 0.5; cursor: not-allowed; background: transparent;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg></span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% else %}
+                <div style="text-align: center; padding: 3rem 1rem; border: 1px dashed var(--border-color); border-radius: 12px; color: var(--text-muted); font-size: 0.95rem; background: var(--bg-light);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #cbd5e1; margin-bottom: 0.75rem;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <p style="margin: 0; font-weight: 600;">No added admin accounts found</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem;">Admins added by the Super Admin will be listed here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleOtherMethodField(value) {
+        var group = document.getElementById('other_method_group');
+        var input = group.querySelector('input');
+        if (value === 'OTHER') {
+            group.style.display = 'block';
+            input.setAttribute('required', 'required');
+        } else {
+            group.style.display = 'none';
+            input.removeAttribute('required');
+        }
+    }
+
+    function toggleCutoffFields(value) {
+        var container = document.getElementById('cutoff_fields_container');
+        var cutoffInput = document.getElementById('cutoff_value_input');
+        var customOptionsGroup = document.getElementById('custom_options_group');
+        var customOptionsInput = document.getElementById('custom_options_input');
+        
+        if (value === 'numeric') {
+            container.style.display = 'block';
+            cutoffInput.setAttribute('required', 'required');
+            customOptionsGroup.style.display = 'none';
+            customOptionsInput.removeAttribute('required');
+        } else if (value === 'custom_dropdown') {
+            container.style.display = 'none';
+            cutoffInput.removeAttribute('required');
+            customOptionsGroup.style.display = 'block';
+            customOptionsInput.setAttribute('required', 'required');
+        } else {
+            container.style.display = 'none';
+            cutoffInput.removeAttribute('required');
+            customOptionsGroup.style.display = 'none';
+            customOptionsInput.removeAttribute('required');
+        }
+    }
+
+    // Run on page load to set correct visibility
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleOtherMethodField(document.getElementById('test_method_select').value);
+        toggleCutoffFields(document.getElementById('result_type_select').value);
+    });
+</script>
+{% endblock %}

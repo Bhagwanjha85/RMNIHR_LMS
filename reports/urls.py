@@ -1,0 +1,27 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.dashboard, name='dashboard'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('password-reset/', views.password_reset_otp_view, name='password_reset_otp'),
+    path('report/create/', views.create_report, name='create_report'),
+    path('report/<int:pk>/', views.view_report, name='view_report'),
+    path('report/<int:pk>/edit/', views.edit_report, name='edit_report'),
+    path('report/<int:pk>/bw/', views.view_report_bw, name='view_report_bw'),
+    path('report/<int:pk>/aiims/', views.view_report_aiims, name='view_report_aiims'),
+    path('report/<int:pk>/delete/', views.delete_report, name='delete_report'),
+    path('bulk-upload/', views.bulk_upload, name='bulk_upload'),
+    path('bulk-delete/', views.bulk_delete_reports, name='bulk_delete'),
+    path('bulk-print/', views.bulk_print_reports, name='bulk_print'),
+    path('export-excel/', views.export_reports_excel, name='export_reports_excel'),
+    path('export-weekly-icmr/', views.export_weekly_icmr_report, name='export_weekly_icmr_report'),
+    path('login/otp/', views.admin_login_otp_view, name='admin_login_otp'),
+    path('super-admin/', views.super_admin_panel, name='super_admin_panel'),
+    path('super-admin/admin/add/', views.add_admin_view, name='add_admin'),
+    path('super-admin/admin/<int:pk>/delete/', views.delete_admin_view, name='delete_admin'),
+    path('super-admin/template-config/', views.update_template_config_view, name='update_template_config'),
+    path('about-us/', views.about_us, name='about_us'),
+]

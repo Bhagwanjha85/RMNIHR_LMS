@@ -1,0 +1,383 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RMNIHR - Daily Reporting System 2026{% endblock %}</title>
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Extra custom styles for interactive form previews */
+        .interpretation-preview-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .interpretation-preview-text.negative {
+            background-color: var(--status-negative-bg);
+            color: var(--status-negative);
+        }
+
+        .interpretation-preview-text.positive {
+            background-color: var(--status-positive-bg);
+            color: var(--status-positive);
+        }
+
+        .interpretation-preview-text.equivocal {
+            background-color: var(--status-equivocal-bg);
+            color: var(--status-equivocal);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+        {% if user.is_authenticated and request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'admin_login_otp' and request.resolver_match.url_name != 'password_reset_otp' %}
+        <!-- Top Contact Bar -->
+        <div class="top-contact-bar">
+            <div class="contact-left">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    0612-2631565 / 2636651
+                </span>
+                <span class="desktop-only">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    sahoo.gc@icmr.gov.in
+                </span>
+            </div>
+            
+            <div class="contact-center">
+                <strong>VIRAL RESEARCH AND DIAGNOSTIC LABORATORIES</strong>
+                <span>DEPARTMENT OF VIROLOGY (ICMR-RMNIHR, PATNA)</span>
+            </div>
+            
+            <div class="contact-right" id="live-clock" style="display: flex; gap: 6px; align-items: center; font-weight: 600;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="clock-display">Loading date & time...</span>
+            </div>
+        </div>
+
+        <!-- Navbar -->
+        <header class="navbar">
+            <a href="{% url 'dashboard' %}" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                <div class="brand-section" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    {% if active_logos %}
+                        {% for db_logo in active_logos %}
+                            <img src="{{ db_logo.image_base64 }}" alt="{{ db_logo.name }}" class="brand-logo">
+                        {% endfor %}
+                    {% else %}
+                        <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo">
+                    {% endif %}
+                </div>
+            </a>
+
+            <!-- Desktop nav buttons -->
+            <div class="nav-actions">
+                <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="{% url 'create_report' %}" class="nav-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Create Report
+                </a>
+                <a href="{% url 'forgot_password' %}" class="nav-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border: none; box-shadow: 0 4px 15px rgba(27, 40, 92, 0.25);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Account Settings
+                </a>
+                {% if user.profile.is_super_admin %}
+                <a href="{% url 'super_admin_panel' %}" class="nav-btn nav-btn-secondary" style="border-color: var(--secondary); color: var(--secondary);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                    Super Admin Config
+                </a>
+                {% endif %}
+                <button id="themeToggleBtn" class="nav-btn nav-btn-secondary" style="cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" title="Toggle Theme">
+                    <svg id="theme-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg id="theme-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <span>Theme</span>
+                </button>
+                <!-- Logout Button -->
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-btn" style="background: linear-gradient(135deg, #ef4444, #f87171); color: white; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Logout
+                    </button>
+                </form>
+            </div>
+
+            <!-- Hamburger button (mobile only) -->
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" onclick="toggleMobileNav()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="wave-navbar"></div>
+        </header>
+
+        <!-- Mobile Nav Dropdown -->
+        <nav class="mobile-nav" id="mobileNav">
+            <a href="{% url 'dashboard' %}" class="mobile-nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{% url 'create_report' %}" class="mobile-nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Create Report
+            </a>
+            <a href="{% url 'forgot_password' %}" class="mobile-nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Account Settings
+            </a>
+            {% if user.profile.is_super_admin %}
+            <a href="{% url 'super_admin_panel' %}" class="mobile-nav-link" style="color: var(--secondary);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                Super Admin Config
+            </a>
+            {% endif %}
+            <a href="javascript:void(0);" onclick="toggleTheme()" class="mobile-nav-link" style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    Toggle Theme
+                </span>
+                <span id="mobileThemeText" style="font-size: 0.8rem; background: var(--border-color); padding: 2px 8px; border-radius: 20px; font-weight: 600;">Dark Mode</span>
+            </a>
+            <!-- Mobile Logout Button -->
+            <form action="{% url 'logout' %}" method="post" style="display: block; margin: 10px 16px;">
+                {% csrf_token %}
+                <button type="submit" style="background: linear-gradient(135deg, #ef4444, #f87171); color: white; border: none; padding: 10px 16px; border-radius: 6px; width: 100%; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Logout
+                </button>
+            </form>
+        </nav>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% if messages %}
+            <div class="messages-container" style="max-width: 1200px; margin: 1rem auto 0 auto; padding: 0 1rem;">
+                {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" style="padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 0.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: var(--card-bg); border-left: 5px solid {% if message.tags == 'error' %}#ef4444{% else %}#22c55e{% endif %};">
+                    {% if message.tags == 'success' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #22c55e;"><polyline points="20 6 9 17 4 12"/></svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {% endif %}
+                    <span style="color: var(--text-dark);">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+
+
+        {% block extra_body %}{% endblock %}
+
+        {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'admin_login_otp' and request.resolver_match.url_name != 'password_reset_otp' %}
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="wave-footer"></div>
+            <p>&copy; 2026 ICMR-RMNIHR - Viral Research &amp; Diagnostic Laboratories (VRDL). All rights reserved.</p>
+            <p style="margin-top: 8px; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Total Visits: <span style="font-weight: 700; color: var(--secondary);">{{ visitor_count|default:1 }}</span>
+                </span>
+                <span style="color: var(--border-color);">|</span>
+                <a href="{% url 'about_us' %}" class="footer-about-link" style="color: var(--secondary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    About Us &amp; Contributors
+                </a>
+            </p>
+        </footer>
+        {% endif %}
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('scroll-animated');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const animateElements = document.querySelectorAll('.card, .stat-card, .test-builder-box');
+            animateElements.forEach(el => observer.observe(el));
+        });
+    </script>
+    {% if user.is_authenticated %}
+    <script>
+        (function() {
+            // Theme Toggle Logic
+            const sunIcon = document.getElementById('theme-sun');
+            const moonIcon = document.getElementById('theme-moon');
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const mobileThemeText = document.getElementById('mobileThemeText');
+
+            function updateIcons(theme) {
+                if (theme === 'dark') {
+                    if (sunIcon) sunIcon.style.display = 'block';
+                    if (moonIcon) moonIcon.style.display = 'none';
+                    if (mobileThemeText) mobileThemeText.textContent = 'Light Mode';
+                } else {
+                    if (sunIcon) sunIcon.style.display = 'none';
+                    if (moonIcon) moonIcon.style.display = 'block';
+                    if (mobileThemeText) mobileThemeText.textContent = 'Dark Mode';
+                }
+            }
+
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateIcons(currentTheme);
+
+            window.toggleTheme = function() {
+                const activeTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateIcons(newTheme);
+            };
+
+            if (themeBtn) {
+                themeBtn.addEventListener('click', toggleTheme);
+            }
+
+            // Inactivity Auto-logout (1.5 hours)
+            const timeoutTime = 90 * 60 * 1000;
+            let timeoutTimer;
+
+            function resetTimer() {
+                clearTimeout(timeoutTimer);
+                timeoutTimer = setTimeout(logoutUser, timeoutTime);
+            }
+
+            function logoutUser() {
+                alert("Session expired due to 1.5 hours of inactivity. Redirecting to login...");
+                
+                // Submit POST request to logout
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{% url 'logout' %}";
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+                form.appendChild(csrfInput);
+
+                const nextInput = document.createElement('input');
+                nextInput.type = 'hidden';
+                nextInput.name = 'next';
+                nextInput.value = "{% url 'dashboard' %}";
+                form.appendChild(nextInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+            // Events that reset the inactivity timer
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            document.onmousedown = resetTimer;
+            document.ontouchstart = resetTimer;
+            document.onclick = resetTimer;
+            document.onscroll = resetTimer;
+        })();
+    </script>
+    {% endif %}
+    <script>
+        (function() {
+            function updateClock() {
+                const clockEl = document.getElementById('clock-display');
+                if (!clockEl) return;
+                const now = new Date();
+                const options = { 
+                    weekday: 'short', 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit', 
+                    hour12: true 
+                };
+                clockEl.textContent = now.toLocaleString('en-US', options);
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+
+    <!-- Security: Disable right-click, text selection & drag on all pages -->
+    <script>
+        // Auto-hide messages after 3 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.messages-container');
+            if (container) {
+                setTimeout(function() {
+                    container.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                    container.style.opacity = '0';
+                    container.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        container.remove();
+                    }, 500);
+                }, 3000);
+            }
+        });
+
+        // Block right-click context menu
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Block keyboard shortcuts: F12, Ctrl+Shift+I/J/C/U, Ctrl+U, Ctrl+S, Ctrl+P
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['U', 'S', 'P'].includes(e.key.toUpperCase()))
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+
+</html>
