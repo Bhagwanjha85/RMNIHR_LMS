@@ -314,7 +314,7 @@ class SystemLogo(models.Model):
 
 
 class Visitor(models.Model):
-    ip_address = models.GenericIPAddressField(unique=True)
+    ip_address = models.GenericIPAddressField(db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
