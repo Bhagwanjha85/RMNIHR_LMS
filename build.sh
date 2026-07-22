@@ -8,9 +8,3 @@ pip install -r requirements.txt
 # Gather static files
 python manage.py collectstatic --noinput
 
-# Run migrations
-python manage.py migrate
-
-# Create or update the primary superuser with correct UserProfile configuration
-python manage.py create_superuser_rmnihr --force-update
-
