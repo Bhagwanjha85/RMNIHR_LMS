@@ -1,0 +1,34 @@
+name: Daily Database Backup to Google Drive
+
+on:
+  schedule:
+    # Runs at 00:00 UTC (5:30 AM IST) every single day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manually running the backup from GitHub UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up PostgreSQL Client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Create Database Dump
+      run: |
+        # Generate backup filename with current date
+        FILENAME="rmnihr_backup_$(date +'%Y-%m-%d_%H%M%S').sql"
+        echo "BACKUP_FILENAME=$FILENAME" >> $GITHUB_ENV
+        
+        # Execute pg_dump using the secrets database url
+        pg_dump "${{ secrets.SUPABASE_DATABASE_URL }}" > "$FILENAME"
+
+    - name: Upload Backup to Google Drive
+      uses: adityassdev/gdrive-upload-action@v1.1.0
+      with:
+        credentials: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+        filename: ${{ env.BACKUP_FILENAME }}
+        folderId: ${{ secrets.GDRIVE_FOLDER_ID }}
+        overwrite: false
