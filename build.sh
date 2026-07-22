@@ -12,5 +12,5 @@ python manage.py collectstatic --noinput
 python manage.py migrate
 
 # Create or update the primary superuser with correct UserProfile configuration
-python manage.py create_superuser_rmnihr
+python manage.py create_superuser_rmnihr --force-update
 
