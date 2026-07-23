@@ -799,11 +799,7 @@
     <header class="portal-header no-print">
         <div class="header-container">
             <div class="brand-wrap">
-                {% if template_config.logo %}
-                <img src="{{ template_config.logo.image_base64 }}" alt="Hospital Logo" class="brand-logo">
-                {% else %}
-                <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo" onerror="this.style.display='none';">
-                {% endif %}
+                <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo">
                 <div class="brand-info">
                     <h1>ICMR - RMNIHR / RMRIMS</h1>
                     <p>Rajendra Memorial Research Institute of Medical Sciences (VRDL)</p>
