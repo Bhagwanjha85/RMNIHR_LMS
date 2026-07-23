@@ -356,7 +356,7 @@ class PublicReportPortalTests(TestCase):
             'sex': 'F'
         })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No report found. Please check your details.")
+        self.assertContains(response, "No report found matching Lab ID")
 
     def test_public_report_read_only_protection(self):
         response = self.client.post('/report/', {

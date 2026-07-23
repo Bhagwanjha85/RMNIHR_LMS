@@ -2186,7 +2186,7 @@ def public_report_search(request):
     if request.method == 'POST' or (request.method == 'GET' and (lab_id or age_value or sex)):
         searched = True
         if not lab_id or not age_value or not sex:
-            error_message = "No report found. Please check your details."
+            error_message = "Please fill in all required search fields (Lab ID, Age, and Gender)."
         else:
             try:
                 age_val_int = int(age_value)
@@ -2199,9 +2199,9 @@ def public_report_search(request):
                 )
                 report = matched_reports.first()
                 if not report:
-                    error_message = "No report found. Please check your details."
+                    error_message = f"No report found matching Lab ID '{lab_id}'. Please check your Lab ID, Age, and Gender details."
             except (ValueError, TypeError):
-                error_message = "No report found. Please check your details."
+                error_message = "Invalid age entered. Please enter a valid number for age."
 
     template_config = TemplateConfig.get_solo()
 
