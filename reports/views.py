@@ -2204,6 +2204,7 @@ def public_report_search(request):
                 error_message = "Invalid age entered. Please enter a valid number for age."
 
     template_config = TemplateConfig.get_solo()
+    total_reports_count = Report.objects.count()
 
     formatted_receiving_date = ""
     formatted_reporting_date = ""
@@ -2228,6 +2229,7 @@ def public_report_search(request):
         'formatted_reporting_date': formatted_reporting_date,
         'sex_display': sex_display,
         'template_config': template_config,
+        'total_reports_count': total_reports_count,
     }
     return render(request, 'reports/public_report_portal.html', context)
 

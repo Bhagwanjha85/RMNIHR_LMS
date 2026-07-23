@@ -323,6 +323,7 @@ class PublicReportPortalTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Search Your Diagnostic Report")
         self.assertContains(response, "Public Patient Report Portal")
+        self.assertContains(response, "Total Reports Generated:")
 
     def test_public_report_search_success(self):
         response = self.client.post('/report/', {
