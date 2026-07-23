@@ -2169,6 +2169,70 @@ def custom_error_404(request, exception=None):
     return response
 
 
+def public_report_search(request):
+    """
+    Public Patient Report Portal accessible without login.
+    Patients enter Lab ID, Age, Age Unit (Days/Months/Years), and Gender to search, view, and download their report.
+    """
+    report = None
+    searched = False
+    error_message = None
+
+    lab_id = (request.POST.get('lab_id') or request.GET.get('lab_id') or '').strip()
+    age_value = (request.POST.get('age_value') or request.GET.get('age_value') or '').strip()
+    age_unit = (request.POST.get('age_unit') or request.GET.get('age_unit') or 'Y').strip().upper()
+    sex = (request.POST.get('sex') or request.GET.get('sex') or '').strip().upper()
+
+    if request.method == 'POST' or (request.method == 'GET' and (lab_id or age_value or sex)):
+        searched = True
+        if not lab_id or not age_value or not sex:
+            error_message = "No report found. Please check your details."
+        else:
+            try:
+                age_val_int = int(age_value)
+                # Secure Django ORM parameterization against SQL Injection
+                matched_reports = Report.objects.prefetch_related('tests').filter(
+                    lab_id__iexact=lab_id,
+                    age_value=age_val_int,
+                    age_unit=age_unit,
+                    sex=sex
+                )
+                report = matched_reports.first()
+                if not report:
+                    error_message = "No report found. Please check your details."
+            except (ValueError, TypeError):
+                error_message = "No report found. Please check your details."
+
+    template_config = TemplateConfig.get_solo()
+
+    formatted_receiving_date = ""
+    formatted_reporting_date = ""
+    sex_display = ""
+    if report:
+        if report.receiving_date:
+            formatted_receiving_date = report.receiving_date.strftime('%d/%m/%Y')
+        if report.reporting_date:
+            formatted_reporting_date = report.reporting_date.strftime('%d/%m/%Y')
+        sex_map = {'M': 'MALE', 'F': 'FEMALE', 'O': 'OTHER'}
+        sex_display = sex_map.get(report.sex, report.sex)
+
+    context = {
+        'report': report,
+        'searched': searched,
+        'error_message': error_message,
+        'lab_id': lab_id,
+        'age_value': age_value,
+        'age_unit': age_unit,
+        'sex': sex,
+        'formatted_receiving_date': formatted_receiving_date,
+        'formatted_reporting_date': formatted_reporting_date,
+        'sex_display': sex_display,
+        'template_config': template_config,
+    }
+    return render(request, 'reports/public_report_portal.html', context)
+
+
+
 
 
 

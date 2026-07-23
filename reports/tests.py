@@ -291,7 +291,84 @@ class ReportPrintTemplateTests(TestCase):
         response = self.client.get(reverse('view_report_aiims', kwargs={'pk': self.report.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "John Doe")
-        self.assertContains(response, "Sample Details:")
+        self.assertContains(response, "Patient Name:")
         self.assertContains(response, "Dr. I/C")
+
+
+class PublicReportPortalTests(TestCase):
+    def setUp(self):
+        self.report = Report.objects.create(
+            lab_id="RMRIMS/2026/101",
+            patient_name="PATIENT PUBLIC",
+            age_value=35,
+            age_unit="Y",
+            sex="F",
+            test_method="ELISA",
+            sample_type="BLOOD",
+            receiving_date="2026-07-20",
+            reporting_date="2026-07-21",
+            ref_by="Patna Medical College"
+        )
+        ReportTest.objects.create(
+            report=self.report,
+            test_name="Dengue IgM",
+            result_value="15.2",
+            test_method="ELISA",
+            interpretation_text="Positive"
+        )
+        self.client = Client()
+
+    def test_public_report_portal_accessible_without_login(self):
+        response = self.client.get('/report/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Search Your Diagnostic Report")
+        self.assertContains(response, "Public Patient Report Portal")
+
+    def test_public_report_search_success(self):
+        response = self.client.post('/report/', {
+            'lab_id': 'RMRIMS/2026/101',
+            'age_value': '35',
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Patient Public")
+        self.assertContains(response, "RMRIMS/2026/101")
+        self.assertContains(response, "Dengue IgM")
+        self.assertContains(response, "POSITIVE")
+        self.assertContains(response, "Download Report PDF")
+
+    def test_public_report_search_case_insensitive_lab_id(self):
+        response = self.client.post('/report/', {
+            'lab_id': 'rmrims/2026/101',
+            'age_value': '35',
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Patient Public")
+
+    def test_public_report_search_not_found(self):
+        response = self.client.post('/report/', {
+            'lab_id': 'RMRIMS/2026/101',
+            'age_value': '99',
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No report found. Please check your details.")
+
+    def test_public_report_read_only_protection(self):
+        response = self.client.post('/report/', {
+            'lab_id': 'RMRIMS/2026/101',
+            'age_value': '35',
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "edit_report")
+        self.assertNotContains(response, "delete_report")
+        self.assertNotContains(response, "bulk-upload")
+
 
 
