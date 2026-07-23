@@ -113,6 +113,9 @@ class ReportTest(models.Model):
         name = self.test_name
         
         # Check database configurations first
+        from reports.backup_utils import restore_test_configs_from_backup_if_needed
+        restore_test_configs_from_backup_if_needed()
+        
         config = TestConfig.objects.filter(test_name=name, test_method=method).first()
         if config:
             if config.result_type == 'numeric':
@@ -163,6 +166,8 @@ class ReportTest(models.Model):
                 self.interpretation_text = qualitative_mapping[val_clean]
 
         # Check database configurations first
+        from reports.backup_utils import restore_test_configs_from_backup_if_needed
+        restore_test_configs_from_backup_if_needed()
         config = TestConfig.objects.filter(test_name=name, test_method=method).first()
         if config:
             if config.result_type == 'numeric' and self.result_value:
@@ -337,7 +342,7 @@ class TemplateConfig(models.Model):
         return "Template Configuration"
 
 
-# Cache Invalidation Signals
+# Cache Invalidation & Backup Signals
 from django.core.cache import cache
 
 @receiver([post_save, post_delete], sender=SystemLogo)
@@ -346,4 +351,11 @@ from django.core.cache import cache
 @receiver([post_save, post_delete], sender=ReportTest)
 def clear_cache_on_write(sender, instance, **kwargs):
     cache.clear()
+
+@receiver([post_save, post_delete], sender=TestConfig)
+def handle_test_config_write(sender, instance, **kwargs):
+    cache.clear()
+    from reports.backup_utils import save_test_configs_to_backup
+    save_test_configs_to_backup()
+
 

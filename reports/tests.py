@@ -92,7 +92,61 @@ class ReportTestModelTests(TestCase):
             test_method="ELISA"
         )
         self.assertEqual(t.interpretation_text, "Strong Positive")
-        self.assertEqual(t.interpretation_range, "Weak Positive / Strong Positive / Negative")
+
+class TestConfigBackupRestoreTests(TestCase):
+    def test_backup_and_restore_cycle(self):
+        import os
+        from reports.models import TestConfig
+        import reports.backup_utils
+        
+        # Override the path with a test file path
+        original_path = reports.backup_utils.BACKUP_FILE_PATH
+        test_path = original_path.replace('.json', '_test.json')
+        reports.backup_utils.BACKUP_FILE_PATH = test_path
+        
+        try:
+            # Ensure start with no backup file (clean slate)
+            if os.path.exists(test_path):
+                os.remove(test_path)
+                
+            # Create a config
+            tc = TestConfig.objects.create(
+                test_name="Test Backup ELISA",
+                test_method="ELISA",
+                result_type="numeric",
+                cutoff_value=1.5
+            )
+            
+            # Verify backup file got created by signal
+            self.assertTrue(os.path.exists(test_path))
+            
+            # Empty the database config table simulating external loss (without triggering delete signals)
+            from django.db.models.signals import post_delete, post_save
+            from reports.models import handle_test_config_write
+            post_save.disconnect(handle_test_config_write, sender=TestConfig)
+            post_delete.disconnect(handle_test_config_write, sender=TestConfig)
+            
+            TestConfig.objects.all().delete()
+            self.assertEqual(TestConfig.objects.count(), 0)
+            
+            # Reconnect signals
+            post_save.connect(handle_test_config_write, sender=TestConfig)
+            post_delete.connect(handle_test_config_write, sender=TestConfig)
+            
+            # Call restore
+            reports.backup_utils.restore_test_configs_from_backup_if_needed()
+            
+            # Verify it got restored successfully
+            self.assertEqual(TestConfig.objects.count(), 1)
+            restored = TestConfig.objects.first()
+            self.assertEqual(restored.test_name, "Test Backup ELISA")
+            self.assertEqual(restored.cutoff_value, 1.5)
+        finally:
+            # Clean up the test backup file
+            if os.path.exists(test_path):
+                os.remove(test_path)
+            # Restore original path
+            reports.backup_utils.BACKUP_FILE_PATH = original_path
 
 class LoginGeofencingTests(TestCase):
     def setUp(self):

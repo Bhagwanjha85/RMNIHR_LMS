@@ -1684,6 +1684,9 @@ def super_admin_panel(request):
         messages.error(request, "Access Denied: Only Super Admins can access the Super Admin Panel.")
         return redirect('dashboard')
         
+    from reports.backup_utils import restore_test_configs_from_backup_if_needed
+    restore_test_configs_from_backup_if_needed()
+    
     configs_list = TestConfig.objects.all()
     editing_config = None
     edit_id = request.GET.get('edit')
