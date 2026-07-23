@@ -2142,5 +2142,30 @@ def export_weekly_icmr_report(request):
     return response
 
 
+def custom_error_500(request):
+    import sys
+    from django.shortcuts import render
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    error_message = str(exc_value) if exc_value else "An unexpected error occurred."
+    
+    context = {
+        'error_message': error_message,
+    }
+    response = render(request, '500.html', context)
+    response.status_code = 500
+    return response
+
+
+def custom_error_404(request, exception=None):
+    from django.shortcuts import render
+    context = {
+        'error_message': str(exception) if exception else "The requested URL was not found on this server."
+    }
+    response = render(request, '404.html', context)
+    response.status_code = 404
+    return response
+
+
+
 
 
