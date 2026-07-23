@@ -1,23 +1,36 @@
+from django.core.cache import cache
 from .models import SystemLogo, Visitor, TemplateConfig
 
 def active_logos(request):
+    logos = cache.get('active_logos_cache')
+    if logos is None:
+        logos = list(SystemLogo.objects.filter(is_active=True).order_by('created_at'))
+        cache.set('active_logos_cache', logos, 3600)
     return {
-        'active_logos': SystemLogo.objects.filter(is_active=True).order_by('created_at')
+        'active_logos': logos
     }
 
 def visitor_count(request):
+    cached_count = cache.get('visitor_count_cache')
+    
     # 1. Skip counting authenticated staff/admin users
     if request.user and request.user.is_authenticated:
+        if cached_count is None:
+            cached_count = Visitor.objects.count()
+            cache.set('visitor_count_cache', cached_count, 300)
         return {
-            'visitor_count': Visitor.objects.count()
+            'visitor_count': cached_count
         }
 
     # 2. Skip counting bots, crawlers, and script engines
     user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
     bot_keywords = ['bot', 'spider', 'crawler', 'slurp', 'curl', 'wget', 'python', 'http-client', 'postman', 'headless']
     if any(keyword in user_agent for keyword in bot_keywords):
+        if cached_count is None:
+            cached_count = Visitor.objects.count()
+            cache.set('visitor_count_cache', cached_count, 300)
         return {
-            'visitor_count': Visitor.objects.count()
+            'visitor_count': cached_count
         }
 
     # 3. Extract real client IP, resolving proxies if any
@@ -48,17 +61,33 @@ def visitor_count(request):
     if ip and not is_private:
         if not request.session.get('has_counted_visit'):
             try:
-                # We removed unique=True constraint, so each unique browser gets its own row.
                 Visitor.objects.create(ip_address=ip)
                 request.session['has_counted_visit'] = True
+                if cached_count is not None:
+                    try:
+                        cached_count = cache.incr('visitor_count_cache')
+                    except ValueError:
+                        cached_count = Visitor.objects.count()
+                        cache.set('visitor_count_cache', cached_count, 300)
+                else:
+                    cached_count = Visitor.objects.count()
+                    cache.set('visitor_count_cache', cached_count, 300)
             except Exception:
                 pass
             
+    if cached_count is None:
+        cached_count = Visitor.objects.count()
+        cache.set('visitor_count_cache', cached_count, 300)
+        
     return {
-        'visitor_count': Visitor.objects.count()
+        'visitor_count': cached_count
     }
 
 def template_config(request):
+    config = cache.get('template_config_cache')
+    if config is None:
+        config = TemplateConfig.get_solo()
+        cache.set('template_config_cache', config, 3600)
     return {
-        'template_config': TemplateConfig.get_solo()
+        'template_config': config
     }

@@ -568,19 +568,23 @@ def dashboard(request):
     
     reports = Report.objects.prefetch_related('tests').all()
     
-    # Optimize to avoid scanning the entire database for distinct methods
-    config_methods = list(TestConfig.objects.values_list('test_method', flat=True).distinct())
-    recent_methods = list(set(Report.objects.order_by('-created_at').values_list('test_method', flat=True)[:1000]))
-    base_methods = ['ELISA', 'RT-PCR', 'RAPID']
-    methods_list = []
-    for m in base_methods:
-        methods_list.append(m)
-    for m in config_methods + recent_methods:
-        if m:
-            m_clean = m.strip().upper()
-            if m_clean and m_clean not in methods_list:
-                methods_list.append(m_clean)
-    
+    # Cache methods_list to avoid redundant queries on every request
+    from django.core.cache import cache
+    methods_list = cache.get('dashboard_methods_list')
+    if not methods_list:
+        config_methods = list(TestConfig.objects.values_list('test_method', flat=True).distinct())
+        recent_methods = list(set(Report.objects.order_by('-created_at').values_list('test_method', flat=True)[:1000]))
+        base_methods = ['ELISA', 'RT-PCR', 'RAPID']
+        methods_list = []
+        for m in base_methods:
+            methods_list.append(m)
+        for m in config_methods + recent_methods:
+            if m:
+                m_clean = m.strip().upper()
+                if m_clean and m_clean not in methods_list:
+                    methods_list.append(m_clean)
+        cache.set('dashboard_methods_list', methods_list, 86400) # Cache for 24 hours
+
     if query:
         reports = reports.filter(
             Q(patient_name__icontains=query) |
@@ -596,7 +600,6 @@ def dashboard(request):
     if test_filter:
         reports = reports.filter(tests__test_name=test_filter).distinct()
         
-    from django.core.cache import cache
     is_filtered = bool(query or start_date or end_date or test_filter)
     
     if not is_filtered:
@@ -619,14 +622,7 @@ def dashboard(request):
             positive_count = stats['pos_cnt']
             equivocal_count = stats['eq_cnt']
             negative_count = stats['neg_cnt']
-            cache.set(cache_key_stats, (total_count, positive_count, equivocal_count, negative_count), 30) # cache for 30 seconds
-            
-        cache_key_top_tests = 'dashboard_top_tests_list'
-        top_tests_list = cache.get(cache_key_top_tests)
-        if top_tests_list is None:
-            top_tests = ReportTest.objects.filter(report__in=reports).values('test_name').annotate(count=Count('id')).order_by('-count')
-            top_tests_list = list(top_tests)[:5]
-            cache.set(cache_key_top_tests, top_tests_list, 60) # cache for 60 seconds
+            cache.set(cache_key_stats, (total_count, positive_count, equivocal_count, negative_count), 86400) # Cache for 24 hours (invalidated on write)
     else:
         # Calculate stats live on filtered queries
         stats = reports.annotate(
@@ -642,16 +638,11 @@ def dashboard(request):
         positive_count = stats['pos_cnt']
         equivocal_count = stats['eq_cnt']
         negative_count = stats['neg_cnt']
-        
-        top_tests = ReportTest.objects.filter(report__in=reports).values('test_name').annotate(count=Count('id')).order_by('-count')
-        top_tests_list = list(top_tests)[:5]
     
     # Build choices with selected flag so template needs no == comparison
     all_test_choices = [c[0] for c in ReportTest.TEST_CHOICES]
     test_choices = [(c, c == test_filter) for c in all_test_choices]
 
-    from django.core.paginator import Paginator
-    
     # Order before pagination
     reports = reports.order_by('-created_at')
     
@@ -660,7 +651,66 @@ def dashboard(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # ─── New Analysis Stats for Admin and Super Admin ───
+    today_date = timezone.localdate()
+    last_week_date = today_date - timedelta(days=7)
+
+    context = {
+        'reports': page_obj,
+        'page_obj': page_obj,
+        'query': query,
+        'start_date': start_date,
+        'end_date': end_date,
+        'test_filter': test_filter,
+        'total_count': total_count,
+        'positive_count': positive_count,
+        'negative_count': negative_count,
+        'equivocal_count': equivocal_count,
+        'test_choices': test_choices,
+        'methods_list': methods_list,
+        'today_date': today_date.strftime('%d %b %Y'),
+        'last_week_date': last_week_date.strftime('%d %b %Y'),
+    }
+    return render(request, 'reports/dashboard.html', context)
+
+
+@login_required
+def dashboard_analytics(request):
+    from django.http import JsonResponse
+    from django.core.cache import cache
+    import hashlib
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    
+    query = request.GET.get('q', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    test_filter = request.GET.get('test_filter', '')
+    
+    # Construct a cache key based on the request query params and role
+    cache_key_components = f"analytics_{query}_{start_date}_{end_date}_{test_filter}_{profile.is_super_admin}"
+    cache_key = "dash_an_" + hashlib.md5(cache_key_components.encode('utf-8')).hexdigest()
+    
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return JsonResponse(cached_data)
+        
+    reports = Report.objects.all()
+    
+    if query:
+        reports = reports.filter(
+            Q(patient_name__icontains=query) |
+            Q(lab_id__icontains=query) |
+            Q(ref_by__icontains=query)
+        )
+        
+    if start_date:
+        reports = reports.filter(reporting_date__gte=start_date)
+    if end_date:
+        reports = reports.filter(reporting_date__lte=end_date)
+        
+    if test_filter:
+        reports = reports.filter(tests__test_name=test_filter).distinct()
+        
     # 1. Total Test Method counts (counting actual reports added)
     method_counts_qs = reports.values('test_method').annotate(count=Count('id')).order_by('-count')
     method_analysis = list(method_counts_qs)
@@ -698,13 +748,13 @@ def dashboard(request):
             'total': stats['total'],
         })
     disease_analysis_list.sort(key=lambda x: x['total'], reverse=True)
-
-    # ─── Super Admin Exclusive Analytics ───
+    
+    # 3. Super Admin Exclusive Analytics
     creator_analysis = None
     daily_analysis = None
     sample_type_analysis = None
     if profile.is_super_admin:
-        # 1. Who created the report & how many
+        # Who created the report & how many
         creator_analysis_qs = reports.values('created_by__username', 'created_by__first_name').annotate(count=Count('id')).order_by('-count')
         creator_analysis = []
         for item in creator_analysis_qs:
@@ -717,11 +767,12 @@ def dashboard(request):
                 'count': count
             })
             
-        # 2. Daily reports trend (last 7 days)
-        seven_days_ago = timezone.now().date() - timedelta(days=6)
-        daily_reports_qs = reports.filter(created_at__date__gte=seven_days_ago).values('created_at__date').annotate(count=Count('id')).order_by('created_at__date')
+        # Daily reports trend (last 7 days)
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        daily_reports_qs = reports.filter(created_at__gte=seven_days_ago).values('created_at__date').annotate(count=Count('id')).order_by('created_at__date')
         
-        daily_data = {seven_days_ago + timedelta(days=i): 0 for i in range(7)}
+        today_date = timezone.localdate()
+        daily_data = { (today_date - timedelta(days=i)): 0 for i in range(7) }
         for item in daily_reports_qs:
             d_date = item['created_at__date']
             if d_date in daily_data:
@@ -729,7 +780,7 @@ def dashboard(request):
                 
         daily_analysis = [{'date': d.strftime('%d %b'), 'count': count} for d, count in sorted(daily_data.items())]
         
-        # 3. Sample Type Breakdown
+        # Sample Type Breakdown
         sample_type_analysis_qs = reports.values('sample_type').annotate(count=Count('id')).order_by('-count')
         sample_type_dict = {}
         for item in sample_type_analysis_qs:
@@ -739,8 +790,7 @@ def dashboard(request):
             sample_type_dict[s_type] = sample_type_dict.get(s_type, 0) + item['count']
         sample_type_analysis = [{'sample_type': k, 'count': v} for k, v in sorted(sample_type_dict.items(), key=lambda x: x[1], reverse=True)]
 
-    # ─── Chart Statistics (calculated on the filtered 'reports' queryset) ───
-    # 1. Age stats
+    # 4. Chart Statistics (calculated on the filtered 'reports' queryset)
     age_stats = reports.aggregate(
         group_0_10=Count('id', filter=Q(age_value__lte=10) | Q(age_unit__in=['M', 'D'])),
         group_11_30=Count('id', filter=Q(age_value__gte=11, age_value__lte=30, age_unit='Y')),
@@ -748,14 +798,13 @@ def dashboard(request):
         group_60_plus=Count('id', filter=Q(age_value__gt=60, age_unit='Y'))
     )
     
-    # 2. Sex stats
     sex_stats = reports.aggregate(
         male=Count('id', filter=Q(sex='M')),
         female=Count('id', filter=Q(sex='F')),
         other=Count('id', filter=Q(sex='O'))
     )
     
-    # 3. Monthly trends for top diseases
+    # Monthly trends for top diseases
     from django.db.models.functions import ExtractMonth
     positive_tests = ReportTest.objects.filter(
         report__in=reports,
@@ -779,12 +828,11 @@ def dashboard(request):
         if name in disease_trends and m_num is not None:
             disease_trends[name][m_num - 1] = cnt
             
-    # Chart.js dataset prep
     colors = [
-        {'border': '#10b981', 'bg': 'rgba(16, 185, 129, 0.1)'}, # Emerald
-        {'border': '#3b82f6', 'bg': 'rgba(59, 130, 246, 0.1)'},  # Blue
-        {'border': '#f59e0b', 'bg': 'rgba(245, 158, 11, 0.1)'},  # Amber
-        {'border': '#8b5cf6', 'bg': 'rgba(139, 92, 246, 0.1)'},  # Purple
+        {'border': '#10b981', 'bg': 'rgba(16, 185, 129, 0.1)'},
+        {'border': '#3b82f6', 'bg': 'rgba(59, 130, 246, 0.1)'},
+        {'border': '#f59e0b', 'bg': 'rgba(245, 158, 11, 0.1)'},
+        {'border': '#8b5cf6', 'bg': 'rgba(139, 92, 246, 0.1)'},
     ]
     
     trend_datasets = []
@@ -799,36 +847,22 @@ def dashboard(request):
             'fill': True,
             'borderWidth': 2.5
         })
-
-    today_date = timezone.localdate()
-    last_week_date = today_date - timedelta(days=7)
-
-    context = {
-        'reports': page_obj,
-        'page_obj': page_obj,
-        'query': query,
-        'start_date': start_date,
-        'end_date': end_date,
-        'test_filter': test_filter,
-        'total_count': total_count,
-        'positive_count': positive_count,
-        'negative_count': negative_count,
-        'equivocal_count': equivocal_count,
-        'top_tests': top_tests_list,
-        'test_choices': test_choices,
-        'methods_list': methods_list,
+        
+    response_data = {
         'method_analysis': method_analysis,
         'disease_analysis_list': disease_analysis_list,
         'creator_analysis': creator_analysis,
         'daily_analysis': daily_analysis,
         'sample_type_analysis': sample_type_analysis,
-        'age_stats_json': json.dumps(age_stats),
-        'sex_stats_json': json.dumps(sex_stats),
-        'trend_datasets_json': json.dumps(trend_datasets),
-        'today_date': today_date.strftime('%d %b %Y'),
-        'last_week_date': last_week_date.strftime('%d %b %Y'),
+        'age_stats': age_stats,
+        'sex_stats': sex_stats,
+        'trend_datasets': trend_datasets,
     }
-    return render(request, 'reports/dashboard.html', context)
+    
+    # Cache for 1 hour (invalidated on write)
+    cache.set(cache_key, response_data, 3600)
+    
+    return JsonResponse(response_data)
 
 @login_required
 def create_report(request):

@@ -451,7 +451,18 @@
 
         <!-- Toggle Body Content -->
         <div id="analyticsCollapsibleBody" style="max-height: 0px; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; background: var(--bg-card);">
-            <div style="padding: 2rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 2rem;">
+            <!-- Loading Indicator -->
+            <div id="analyticsLoading" style="padding: 3rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: var(--text-muted);">
+                <div class="spinner" style="width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--secondary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+                <span style="font-weight: 600; font-size: 0.95rem;">Loading laboratory analytics...</span>
+            </div>
+            
+            <div id="analyticsContent" style="display: none; padding: 2rem 1.5rem; border-top: 1px solid var(--border-color); flex-direction: column; gap: 2rem;">
                 
                 <!-- Charts Section -->
                 <div class="charts-grid">
@@ -494,171 +505,91 @@
                 <!-- Dashboard Stats & Analysis Section -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; width: 100%;">
         
-        <!-- Test Methods Analysis Card -->
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Total Test Methods Count
-            </div>
-            
-            <div class="paginate-container" data-per-page="5">
-                <div class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-                    {% if method_analysis %}
-                        {% for item in method_analysis %}
-                        <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); transition: transform 0.2s ease;">
-                            <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">{{ item.test_method }}</span>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Tests Run:</span>
-                                <span style="background: var(--primary); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 800; font-size: 1rem;">{{ item.count }}</span>
+                    <!-- Test Methods Analysis Card -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            Total Test Methods Count
+                        </div>
+                        
+                        <div id="method-analysis-container" class="paginate-container" data-per-page="5">
+                            <div id="method-analysis-wrapper" class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No method data available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Reports Created by Admin/System Card (Super Admin Only) -->
-        {% if user.profile.is_super_admin %}
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Reports Created By
-            </div>
-            
-            <div class="paginate-container" data-per-page="5">
-                <div class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-                    {% if creator_analysis %}
-                        {% for item in creator_analysis %}
-                        <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
-                            <span style="font-weight: bold; color: var(--primary);">{{ item.display_name }}</span>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Reports:</span>
-                                <span style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem;">{{ item.count }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No creator data available.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Daily Reports Trend Card (Super Admin Only) -->
-        {% if user.profile.is_super_admin %}
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                7-Day Reports Activity
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
-                {% if daily_analysis %}
-                    {% for item in daily_analysis %}
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); width: 50px;">{{ item.date }}</span>
-                        <div style="flex-grow: 1; background: var(--bg-light); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
-                            <div style="background: linear-gradient(90deg, var(--primary), var(--secondary)); height: 100%; border-radius: 6px; width: {% if total_count > 0 %}{% widthratio item.count total_count 100 %}{% else %}0{% endif %}%;"></div>
-                        </div>
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-align: right; width: 30px;">{{ item.count }}</span>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No trend data available.</p>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
 
-        <!-- Sample Type Breakdown Card (Super Admin Only) -->
-        {% if user.profile.is_super_admin %}
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                Sample Types Breakdown
-            </div>
-            
-            <div class="paginate-container" data-per-page="5">
-                <div class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-                    {% if sample_type_analysis %}
-                        {% for item in sample_type_analysis %}
-                        <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
-                            <span style="font-weight: bold; color: var(--primary); text-transform: uppercase;">{{ item.sample_type|default:"Unknown" }}</span>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Count:</span>
-                                <span style="background: var(--secondary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem;">{{ item.count }}</span>
+                    <!-- Reports Created by Admin/System Card (Super Admin Only) -->
+                    {% if user.profile.is_super_admin %}
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Reports Created By
+                        </div>
+                        
+                        <div id="creator-analysis-container" class="paginate-container" data-per-page="5">
+                            <div id="creator-analysis-wrapper" class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No sample type data available.</p>
+                    </div>
                     {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Disease Test breakdown & Value Analysis Card -->
-        <div class="card" style="margin-bottom: 0;">
-            <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                Disease Tests Value Analysis
-            </div>
-            
-            <div class="paginate-container" data-per-page="10" style="overflow-x: auto; margin-top: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                    <thead>
-                        <tr style="background: rgba(0, 0, 0, 0.03); border-bottom: 1px solid var(--border-color);">
-                            <th style="padding: 1rem; font-weight: 700; color: var(--text-muted);">Disease Test</th>
-                            <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-positive);">Pos</th>
-                            <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-negative);">Neg</th>
-                            <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-equivocal);">Eq</th>
-                            <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--text-muted);">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody class="paginate-items-wrapper">
-                        {% if disease_analysis_list %}
-                            {% for item in disease_analysis_list %}
-                            <tr class="paginate-item" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
-                                <td style="padding: 1rem; font-weight: 700; color: var(--primary);">{{ item.name }}</td>
-                                <td style="padding: 1rem; text-align: center;">
-                                    {% if item.positive > 0 %}
-                                        <span style="background: var(--status-positive-bg); color: var(--status-positive); font-weight: bold; padding: 2px 8px; border-radius: 12px;">{{ item.positive }}</span>
-                                    {% else %}
-                                        <span style="color: var(--text-muted); opacity: 0.4;">0</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding: 1rem; text-align: center;">
-                                    {% if item.negative > 0 %}
-                                        <span style="background: var(--status-negative-bg); color: var(--status-negative); font-weight: bold; padding: 2px 8px; border-radius: 12px;">{{ item.negative }}</span>
-                                    {% else %}
-                                        <span style="color: var(--text-muted); opacity: 0.4;">0</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding: 1rem; text-align: center;">
-                                    {% if item.equivocal > 0 %}
-                                        <span style="background: var(--status-equivocal-bg); color: var(--status-equivocal); font-weight: bold; padding: 2px 8px; border-radius: 12px;">{{ item.equivocal }}</span>
-                                    {% else %}
-                                        <span style="color: var(--text-muted); opacity: 0.4;">0</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding: 1rem; text-align: center; font-weight: 700; color: var(--text-main);">{{ item.total }}</td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="5" style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No disease data available.</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
+
+                    <!-- Daily Reports Trend Card (Super Admin Only) -->
+                    {% if user.profile.is_super_admin %}
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            7-Day Reports Activity
+                        </div>
+                        
+                        <div id="daily-analysis-wrapper" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Sample Type Breakdown Card (Super Admin Only) -->
+                    {% if user.profile.is_super_admin %}
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            Sample Types Breakdown
+                        </div>
+                        
+                        <div id="sample-type-analysis-container" class="paginate-container" data-per-page="5">
+                            <div id="sample-type-analysis-wrapper" class="paginate-items-wrapper" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Disease Test breakdown & Value Analysis Card -->
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--secondary);"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Disease Tests Value Analysis
+                        </div>
+                        
+                        <div id="disease-analysis-container" class="paginate-container" data-per-page="10" style="overflow-x: auto; margin-top: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                                <thead>
+                                    <tr style="background: rgba(0, 0, 0, 0.03); border-bottom: 1px solid var(--border-color);">
+                                        <th style="padding: 1rem; font-weight: 700; color: var(--text-muted);">Disease Test</th>
+                                        <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-positive);">Pos</th>
+                                        <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-negative);">Neg</th>
+                                        <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--status-equivocal);">Eq</th>
+                                        <th style="padding: 1rem; font-weight: 700; text-align: center; color: var(--text-muted);">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="disease-analysis-wrapper" class="paginate-items-wrapper">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -1029,12 +960,17 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Parse context variables safely
-    const ageStats = JSON.parse('{{ age_stats_json|escapejs }}');
-    const sexStats = JSON.parse('{{ sex_stats_json|escapejs }}');
-    const trendDatasets = JSON.parse('{{ trend_datasets_json|escapejs }}');
+    // Collapsible Analytics Toggle Logic
+    const toggleHeader = document.getElementById('analyticsToggleHeader');
+    const collapsibleBody = document.getElementById('analyticsCollapsibleBody');
+    const toggleChevron = document.getElementById('analyticsToggleChevron');
+    const toggleBadge = document.getElementById('analyticsToggleBadge');
 
-    // Chart.js theme colors configuration
+    let analyticsLoaded = false;
+    let trendsChart = null;
+    let genderChart = null;
+    let ageChart = null;
+
     function getChartThemeColors() {
         const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
         return {
@@ -1043,132 +979,351 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    const initialColors = getChartThemeColors();
+    function initClientSidePagination(container) {
+        const perPage = parseInt(container.getAttribute('data-per-page')) || 5;
+        const wrapper = container.querySelector('.paginate-items-wrapper');
+        if (!wrapper) return;
+        const items = Array.from(wrapper.querySelectorAll('.paginate-item'));
+        if (items.length <= perPage) return; // No pagination needed
+        
+        let currentPage = 1;
+        const totalPages = Math.ceil(items.length / perPage);
+        
+        // Remove existing controls if any
+        const existingControls = container.parentNode.querySelector('.client-pagination-controls');
+        if (existingControls) existingControls.remove();
+        
+        // Create controls container
+        const controls = document.createElement('div');
+        controls.className = 'client-pagination-controls';
+        controls.style.cssText = 'display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 1.25rem; font-size: 0.85rem; font-weight: 600; padding: 0.5rem; border-top: 1px solid var(--border-color);';
+        container.parentNode.appendChild(controls);
+        
+        function showPage(page) {
+            currentPage = page;
+            items.forEach((item, index) => {
+                if (index >= (page - 1) * perPage && index < page * perPage) {
+                    item.style.display = (wrapper.tagName.toLowerCase() === 'tbody') ? 'table-row' : 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            renderControls();
+        }
+        
+        function renderControls() {
+            controls.innerHTML = '';
+            
+            // Prev button
+            const prevBtn = document.createElement('button');
+            prevBtn.type = 'button';
+            prevBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            `;
+            prevBtn.style.cssText = 'border: 1px solid var(--border-color); background: var(--bg-card); cursor: pointer; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;';
+            if (currentPage === 1) {
+                prevBtn.disabled = true;
+                prevBtn.style.opacity = '0.4';
+                prevBtn.style.cursor = 'not-allowed';
+            } else {
+                prevBtn.addEventListener('click', () => showPage(currentPage - 1));
+            }
+            controls.appendChild(prevBtn);
+            
+            // Page Info text
+            const info = document.createElement('span');
+            info.innerHTML = `Page <strong style="color: var(--primary);">${currentPage}</strong> of <strong>${totalPages}</strong>`;
+            info.style.color = 'var(--text-muted)';
+            controls.appendChild(info);
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.type = 'button';
+            nextBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            `;
+            nextBtn.style.cssText = 'border: 1px solid var(--border-color); background: var(--bg-card); cursor: pointer; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: var(--text-main); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;';
+            if (currentPage === totalPages) {
+                nextBtn.disabled = true;
+                nextBtn.style.opacity = '0.4';
+                nextBtn.style.cursor = 'not-allowed';
+            } else {
+                nextBtn.addEventListener('click', () => showPage(currentPage + 1));
+            }
+            controls.appendChild(nextBtn);
+        }
+        
+        showPage(1);
+    }
 
-    // 1. Disease Trends Chart (Line)
-    const trendsCtx = document.getElementById('diseaseTrendsChart').getContext('2d');
-    const trendsChart = new Chart(trendsCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: trendDatasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: initialColors.text,
-                        font: { family: 'Outfit, Inter, sans-serif', weight: 'bold', size: 11 }
+    function loadAnalyticsData() {
+        if (analyticsLoaded) return;
+        
+        const url = "{% url 'dashboard_analytics' %}?q={{ query }}&start_date={{ start_date }}&end_date={{ end_date }}&test_filter={{ test_filter }}";
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading spinner, show content
+                document.getElementById('analyticsLoading').style.display = 'none';
+                const contentDiv = document.getElementById('analyticsContent');
+                contentDiv.style.display = 'flex';
+                
+                // 1. Render test methods
+                const methodWrapper = document.getElementById('method-analysis-wrapper');
+                if (methodWrapper && data.method_analysis) {
+                    if (data.method_analysis.length > 0) {
+                        methodWrapper.innerHTML = data.method_analysis.map(item => `
+                            <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); transition: transform 0.2s ease;">
+                                <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">${item.test_method}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Tests Run:</span>
+                                    <span style="background: var(--primary); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 800; font-size: 1rem;">${item.count}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        methodWrapper.innerHTML = `<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No method data available.</p>`;
                     }
-                },
-                tooltip: {
-                    padding: 10,
-                    cornerRadius: 8,
-                    bodyFont: { family: 'Outfit, Inter, sans-serif' },
-                    titleFont: { family: 'Outfit, Inter, sans-serif', weight: 'bold' }
+                    const container = document.getElementById('method-analysis-container');
+                    if (container) initClientSidePagination(container);
                 }
-            },
-            scales: {
-                x: {
-                    grid: { color: initialColors.grid },
-                    ticks: { color: initialColors.text, font: { family: 'Outfit, Inter, sans-serif' } }
-                },
-                y: {
-                    grid: { color: initialColors.grid },
-                    ticks: { color: initialColors.text, font: { family: 'Outfit, Inter, sans-serif' } },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-
-    // 2. Gender Distribution Chart (Doughnut)
-    const genderCtx = document.getElementById('genderDistributionChart').getContext('2d');
-    const genderChart = new Chart(genderCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Male', 'Female', 'Other'],
-            datasets: [{
-                data: [sexStats.male, sexStats.female, sexStats.other],
-                backgroundColor: [
-                    'rgba(59, 130, 246, 0.85)',  // Blue
-                    'rgba(236, 72, 153, 0.85)',  // Pink
-                    'rgba(156, 163, 175, 0.85)'   // Gray
-                ],
-                borderColor: (document.documentElement.getAttribute('data-theme') === 'dark') ? '#1f2937' : '#ffffff',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: initialColors.text,
-                        boxWidth: 12,
-                        padding: 15,
-                        font: { family: 'Outfit, Inter, sans-serif', weight: 'bold' }
+                
+                // 2. Render creators (superadmin only)
+                const creatorWrapper = document.getElementById('creator-analysis-wrapper');
+                if (creatorWrapper && data.creator_analysis) {
+                    if (data.creator_analysis.length > 0) {
+                        creatorWrapper.innerHTML = data.creator_analysis.map(item => `
+                            <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+                                <span style="font-weight: bold; color: var(--primary);">${item.display_name}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Reports:</span>
+                                    <span style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem;">${item.count}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        creatorWrapper.innerHTML = `<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No creator data available.</p>`;
                     }
-                },
-                tooltip: {
-                    padding: 10,
-                    cornerRadius: 8,
-                    bodyFont: { family: 'Outfit, Inter, sans-serif' }
+                    const container = document.getElementById('creator-analysis-container');
+                    if (container) initClientSidePagination(container);
                 }
-            }
-        }
-    });
+                
+                // 3. Render 7-day trend (superadmin only)
+                const dailyWrapper = document.getElementById('daily-analysis-wrapper');
+                if (dailyWrapper && data.daily_analysis) {
+                    if (data.daily_analysis.length > 0) {
+                        const totalReports = data.daily_analysis.reduce((sum, item) => sum + item.count, 0) || 1;
+                        dailyWrapper.innerHTML = data.daily_analysis.map(item => {
+                            const pct = Math.round((item.count / totalReports) * 100);
+                            return `
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); width: 50px;">${item.date}</span>
+                                    <div style="flex-grow: 1; background: var(--bg-light); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
+                                        <div style="background: linear-gradient(90deg, var(--primary), var(--secondary)); height: 100%; border-radius: 6px; width: ${pct}%;"></div>
+                                    </div>
+                                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-align: right; width: 30px;">${item.count}</span>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        dailyWrapper.innerHTML = `<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No trend data available.</p>`;
+                    }
+                }
+                
+                // 4. Render sample types (superadmin only)
+                const sampleTypeWrapper = document.getElementById('sample-type-analysis-wrapper');
+                if (sampleTypeWrapper && data.sample_type_analysis) {
+                    if (data.sample_type_analysis.length > 0) {
+                        sampleTypeWrapper.innerHTML = data.sample_type_analysis.map(item => `
+                            <div class="paginate-item" style="background: rgba(16, 117, 189, 0.05); padding: 1rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+                                <span style="font-weight: bold; color: var(--primary); text-transform: uppercase;">${item.sample_type || 'Unknown'}</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Count:</span>
+                                    <span style="background: var(--secondary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: 800; font-size: 0.9rem;">${item.count}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        sampleTypeWrapper.innerHTML = `<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No sample type data available.</p>`;
+                    }
+                    const container = document.getElementById('sample-type-analysis-container');
+                    if (container) initClientSidePagination(container);
+                }
+                
+                // 5. Render disease analysis table
+                const diseaseWrapper = document.getElementById('disease-analysis-wrapper');
+                if (diseaseWrapper && data.disease_analysis_list) {
+                    if (data.disease_analysis_list.length > 0) {
+                        diseaseWrapper.innerHTML = data.disease_analysis_list.map(item => `
+                            <tr class="paginate-item" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                                <td style="padding: 1rem; font-weight: 700; color: var(--primary);">${item.name}</td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    ${item.positive > 0 ? `<span style="background: var(--status-positive-bg); color: var(--status-positive); font-weight: bold; padding: 2px 8px; border-radius: 12px;">${item.positive}</span>` : `<span style="color: var(--text-muted); opacity: 0.4;">0</span>`}
+                                </td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    ${item.negative > 0 ? `<span style="background: var(--status-negative-bg); color: var(--status-negative); font-weight: bold; padding: 2px 8px; border-radius: 12px;">${item.negative}</span>` : `<span style="color: var(--text-muted); opacity: 0.4;">0</span>`}
+                                </td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    ${item.equivocal > 0 ? `<span style="background: var(--status-equivocal-bg); color: var(--status-equivocal); font-weight: bold; padding: 2px 8px; border-radius: 12px;">${item.equivocal}</span>` : `<span style="color: var(--text-muted); opacity: 0.4;">0</span>`}
+                                </td>
+                                <td style="padding: 1rem; text-align: center; font-weight: 700; color: var(--text-main);">${item.total}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        diseaseWrapper.innerHTML = `
+                            <tr>
+                                <td colspan="5" style="color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0;">No disease data available.</td>
+                            </tr>
+                        `;
+                    }
+                    const container = document.getElementById('disease-analysis-container');
+                    if (container) initClientSidePagination(container);
+                }
 
-    // 3. Age Distribution Chart (Bar)
-    const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
-    const ageChart = new Chart(ageCtx, {
-        type: 'bar',
-        data: {
-            labels: ['0-10 Years', '11-30 Years', '31-60 Years', '60+ Years'],
-            datasets: [{
-                label: 'Cases',
-                data: [ageStats.group_0_10, ageStats.group_11_30, ageStats.group_31_60, ageStats.group_60_plus],
-                backgroundColor: [
-                    'rgba(245, 158, 11, 0.85)',  // Amber
-                    'rgba(16, 185, 129, 0.85)',  // Emerald
-                    'rgba(139, 92, 246, 0.85)',  // Purple
-                    'rgba(239, 68, 68, 0.85)'    // Red
-                ],
-                borderRadius: 8,
-                borderWidth: 0,
-                maxBarThickness: 50
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    padding: 10,
-                    cornerRadius: 8,
-                    bodyFont: { family: 'Outfit, Inter, sans-serif' }
+                // 6. Draw Chart.js Charts
+                const themeColors = getChartThemeColors();
+                
+                // Disease monthly trends
+                const trendsCtx = document.getElementById('diseaseTrendsChart').getContext('2d');
+                trendsChart = new Chart(trendsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: data.trend_datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: themeColors.text,
+                                    font: { family: 'Outfit, Inter, sans-serif', weight: 'bold', size: 11 }
+                                }
+                            },
+                            tooltip: {
+                                padding: 10,
+                                cornerRadius: 8,
+                                bodyFont: { family: 'Outfit, Inter, sans-serif' },
+                                titleFont: { family: 'Outfit, Inter, sans-serif', weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: themeColors.grid },
+                                ticks: { color: themeColors.text, font: { family: 'Outfit, Inter, sans-serif' } }
+                            },
+                            y: {
+                                grid: { color: themeColors.grid },
+                                ticks: { color: themeColors.text, font: { family: 'Outfit, Inter, sans-serif' } },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Gender Distribution
+                const genderCtx = document.getElementById('genderDistributionChart').getContext('2d');
+                genderChart = new Chart(genderCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Male', 'Female', 'Other'],
+                        datasets: [{
+                            data: [data.sex_stats.male, data.sex_stats.female, data.sex_stats.other],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.85)',
+                                'rgba(236, 72, 153, 0.85)',
+                                'rgba(156, 163, 175, 0.85)'
+                            ],
+                            borderColor: (document.documentElement.getAttribute('data-theme') === 'dark') ? '#1f2937' : '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: themeColors.text,
+                                    boxWidth: 12,
+                                    padding: 15,
+                                    font: { family: 'Outfit, Inter, sans-serif', weight: 'bold' }
+                                }
+                            },
+                            tooltip: {
+                                padding: 10,
+                                cornerRadius: 8,
+                                bodyFont: { family: 'Outfit, Inter, sans-serif' }
+                            }
+                        }
+                    }
+                });
+
+                // Age Distribution
+                const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
+                ageChart = new Chart(ageCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-10 Years', '11-30 Years', '31-60 Years', '60+ Years'],
+                        datasets: [{
+                            label: 'Cases',
+                            data: [data.age_stats.group_0_10, data.age_stats.group_11_30, data.age_stats.group_31_60, data.age_stats.group_60_plus],
+                            backgroundColor: [
+                                'rgba(245, 158, 11, 0.85)',
+                                'rgba(16, 185, 129, 0.85)',
+                                'rgba(139, 92, 246, 0.85)',
+                                'rgba(239, 68, 68, 0.85)'
+                            ],
+                            borderRadius: 8,
+                            borderWidth: 0,
+                            maxBarThickness: 50
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                padding: 10,
+                                cornerRadius: 8,
+                                bodyFont: { family: 'Outfit, Inter, sans-serif' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: themeColors.text, font: { family: 'Outfit, Inter, sans-serif', weight: 'bold' } }
+                            },
+                            y: {
+                                grid: { color: themeColors.grid },
+                                ticks: { color: themeColors.text, font: { family: 'Outfit, Inter, sans-serif' } },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                
+                analyticsLoaded = true;
+                
+                // Recalculate size to adjust transition
+                if (collapsibleBody.style.maxHeight !== '0px') {
+                    collapsibleBody.style.maxHeight = collapsibleBody.scrollHeight + 'px';
                 }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: initialColors.text, font: { family: 'Outfit, Inter, sans-serif', weight: 'bold' } }
-                },
-                y: {
-                    grid: { color: initialColors.grid },
-                    ticks: { color: initialColors.text, font: { family: 'Outfit, Inter, sans-serif' } },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+            })
+            .catch(err => {
+                console.error("Error loading analytics data via AJAX:", err);
+                document.getElementById('analyticsLoading').innerHTML = `
+                    <span style="color: var(--status-negative); font-weight: bold;">Failed to load analytics data. Please refresh and try again.</span>
+                `;
+            });
+    }
 
     // Handle dynamic chart updates when theme switches
     const themeBtn = document.getElementById('themeToggleBtn');
@@ -1178,33 +1333,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 const colors = getChartThemeColors();
                 const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
                 
-                // Update Line Chart
-                trendsChart.options.plugins.legend.labels.color = colors.text;
-                trendsChart.options.scales.x.grid.color = colors.grid;
-                trendsChart.options.scales.x.ticks.color = colors.text;
-                trendsChart.options.scales.y.grid.color = colors.grid;
-                trendsChart.options.scales.y.ticks.color = colors.text;
-                trendsChart.update();
+                if (trendsChart) {
+                    trendsChart.options.plugins.legend.labels.color = colors.text;
+                    trendsChart.options.scales.x.grid.color = colors.grid;
+                    trendsChart.options.scales.x.ticks.color = colors.text;
+                    trendsChart.options.scales.y.grid.color = colors.grid;
+                    trendsChart.options.scales.y.ticks.color = colors.text;
+                    trendsChart.update();
+                }
                 
-                // Update Doughnut Chart
-                genderChart.options.plugins.legend.labels.color = colors.text;
-                genderChart.data.datasets[0].borderColor = isDarkTheme ? '#1f2937' : '#ffffff';
-                genderChart.update();
+                if (genderChart) {
+                    genderChart.options.plugins.legend.labels.color = colors.text;
+                    genderChart.data.datasets[0].borderColor = isDarkTheme ? '#1f2937' : '#ffffff';
+                    genderChart.update();
+                }
                 
-                // Update Bar Chart
-                ageChart.options.scales.x.ticks.color = colors.text;
-                ageChart.options.scales.y.grid.color = colors.grid;
-                ageChart.options.scales.y.ticks.color = colors.text;
-                ageChart.update();
+                if (ageChart) {
+                    ageChart.options.scales.x.ticks.color = colors.text;
+                    ageChart.options.scales.y.grid.color = colors.grid;
+                    ageChart.options.scales.y.ticks.color = colors.text;
+                    ageChart.update();
+                }
             }, 150);
         });
     }
-
-    // Collapsible Analytics Toggle Logic
-    const toggleHeader = document.getElementById('analyticsToggleHeader');
-    const collapsibleBody = document.getElementById('analyticsCollapsibleBody');
-    const toggleChevron = document.getElementById('analyticsToggleChevron');
-    const toggleBadge = document.getElementById('analyticsToggleBadge');
 
     if (toggleHeader && collapsibleBody) {
         toggleHeader.addEventListener('click', function() {
@@ -1230,6 +1382,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 toggleChevron.style.transform = 'rotate(180deg)';
                 toggleBadge.textContent = 'HIDE ANALYSIS';
                 toggleBadge.style.backgroundColor = '#ef4444';
+                
+                // Trigger dynamic fetch on first load
+                loadAnalyticsData();
             }
         });
 

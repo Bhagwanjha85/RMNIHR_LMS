@@ -13,7 +13,7 @@ class Report(models.Model):
     sample_type = models.CharField(max_length=50, default="BLOOD", blank=True, null=True)
     patient_name = models.CharField(max_length=150, blank=True, null=True, db_index=True)
     receiving_date = models.DateField(default=timezone.now, blank=True, null=True, db_index=True)
-    reporting_date = models.DateField(default=timezone.now, blank=True, null=True)
+    reporting_date = models.DateField(default=timezone.now, blank=True, null=True, db_index=True)
     age_value = models.IntegerField(default=0, blank=True, null=True)
     age_unit = models.CharField(max_length=10, choices=[('Y', 'Years'), ('M', 'Months'), ('D', 'Days')], default='Y', blank=True, null=True)
     sex = models.CharField(max_length=1, choices=SEX_CHOICES, default='F', blank=True, null=True)
@@ -247,7 +247,7 @@ class ReportTest(models.Model):
         return f"{self.test_name}: {self.result_value} ({self.interpretation_text}) [{self.test_method}]"
 
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 class UserProfile(models.Model):
@@ -335,4 +335,15 @@ class TemplateConfig(models.Model):
 
     def __str__(self):
         return "Template Configuration"
+
+
+# Cache Invalidation Signals
+from django.core.cache import cache
+
+@receiver([post_save, post_delete], sender=SystemLogo)
+@receiver([post_save, post_delete], sender=TemplateConfig)
+@receiver([post_save, post_delete], sender=Report)
+@receiver([post_save, post_delete], sender=ReportTest)
+def clear_cache_on_write(sender, instance, **kwargs):
+    cache.clear()
 
