@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from .models import Report, ReportTest, UserProfile, TestConfig, SystemLogo, TemplateConfig
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
@@ -2169,6 +2170,7 @@ def custom_error_404(request, exception=None):
     return response
 
 
+@csrf_exempt
 def public_report_search(request):
     """
     Public Patient Report Portal accessible without login.
