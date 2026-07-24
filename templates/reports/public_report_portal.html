@@ -948,18 +948,19 @@
         /* ── PAGE & PRINT MEDIA RULES ── */
         @page {
             size: A4 portrait;
-            margin: 8mm;
+            margin: 5mm 6mm;
         }
 
         @media print {
             html, body {
                 width: 100% !important;
-                height: 100% !important;
+                height: auto !important;
+                max-height: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -967,8 +968,11 @@
             .no-print, .portal-header, .badge-gov-wrap, .search-card, .alert-error, .report-actions-bar, .collaborators-container, .portal-footer {
                 display: none !important;
                 height: 0 !important;
+                width: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: hidden !important;
+                visibility: hidden !important;
             }
 
             .main-container {
@@ -977,13 +981,19 @@
                 margin: 0 auto !important;
                 padding: 0 !important;
                 display: block !important;
+                height: auto !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
 
             .report-section {
                 margin: 0 auto !important;
                 width: 100% !important;
+                height: auto !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
 
             .printable-report-area {
@@ -992,10 +1002,12 @@
                 margin: 0 auto !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 8mm 10mm !important;
+                padding: 6mm 8mm !important;
                 border: 2px solid #1b285c !important;
                 box-sizing: border-box !important;
-                min-height: 265mm !important;
+                min-height: 245mm !important;
+                max-height: 270mm !important;
+                height: auto !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
@@ -1007,42 +1019,42 @@
 
             .report-header-section {
                 text-align: center !important;
-                padding-bottom: 8px !important;
+                padding-bottom: 6px !important;
             }
 
             .report-logo-box {
-                margin-bottom: 6px !important;
+                margin-bottom: 4px !important;
             }
 
             .report-logo-box img {
-                max-height: 75px !important;
+                max-height: 68px !important;
                 width: auto !important;
             }
 
             .dept-main-title {
-                font-size: 12.5pt !important;
+                font-size: 12pt !important;
             }
 
             .dept-sub-title {
-                font-size: 10pt !important;
+                font-size: 9.8pt !important;
             }
 
             .dept-sponsor-text {
-                font-size: 8.2pt !important;
+                font-size: 8pt !important;
             }
 
             .dept-address-text {
-                font-size: 9pt !important;
+                font-size: 8.8pt !important;
             }
 
             .divider-thick {
-                margin: 8px 0 !important;
+                margin: 6px 0 !important;
             }
 
             .section-badge-tag {
-                padding: 3px 10px !important;
-                font-size: 8.5pt !important;
-                margin-bottom: 8px !important;
+                padding: 2.5px 9px !important;
+                font-size: 8pt !important;
+                margin-bottom: 6px !important;
             }
 
             .patient-table-wrap, .results-table-wrap {
@@ -1051,8 +1063,8 @@
 
             .patient-table {
                 width: 100% !important;
-                font-size: 9.2pt !important;
-                margin-bottom: 10px !important;
+                font-size: 9pt !important;
+                margin-bottom: 8px !important;
                 display: table !important;
             }
 
@@ -1063,18 +1075,18 @@
             }
 
             .patient-table td {
-                padding: 4.5px 6px !important;
+                padding: 4px 5px !important;
                 display: table-cell !important;
             }
 
             .patient-table td.lbl {
                 width: 18% !important;
-                font-size: 9.2pt !important;
+                font-size: 9pt !important;
             }
 
             .patient-table td.val {
                 width: 30% !important;
-                font-size: 9.2pt !important;
+                font-size: 9pt !important;
                 padding-left: 0 !important;
             }
 
@@ -1086,17 +1098,17 @@
             .results-table {
                 width: 100% !important;
                 min-width: 0 !important;
-                font-size: 9.5pt !important;
+                font-size: 9.2pt !important;
             }
 
             .results-table th {
-                padding: 6px 8px !important;
-                font-size: 9pt !important;
+                padding: 5px 7px !important;
+                font-size: 8.8pt !important;
             }
 
             .results-table td {
-                padding: 5px 8px !important;
-                font-size: 9.5pt !important;
+                padding: 4.5px 7px !important;
+                font-size: 9.2pt !important;
             }
 
             .signature-row {
@@ -1104,9 +1116,9 @@
                 flex-direction: row !important;
                 justify-content: space-between !important;
                 grid-template-columns: none !important;
-                gap: 12px !important;
+                gap: 10px !important;
                 margin-top: auto !important;
-                padding-top: 16px !important;
+                padding-top: 12px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
@@ -1116,26 +1128,26 @@
             }
 
             .sig-space {
-                height: 32px !important;
+                height: 28px !important;
             }
 
             .sig-space img {
-                max-height: 32px !important;
+                max-height: 28px !important;
             }
 
             .sig-line {
-                font-size: 8pt !important;
+                font-size: 7.8pt !important;
                 width: 95% !important;
             }
 
             .sig-subname {
-                font-size: 7.5pt !important;
+                font-size: 7.2pt !important;
             }
 
             .report-notes {
-                font-size: 7.5pt !important;
-                margin-top: 12px !important;
-                padding-top: 6px !important;
+                font-size: 7.2pt !important;
+                margin-top: 10px !important;
+                padding-top: 5px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
