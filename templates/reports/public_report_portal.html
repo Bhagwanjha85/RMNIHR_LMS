@@ -948,19 +948,21 @@
         /* ── PAGE & PRINT MEDIA RULES ── */
         @page {
             size: A4 portrait;
-            margin: 8mm 8mm 8mm 8mm;
+            margin: 0;
         }
 
         @media print {
             html, body {
-                width: 100% !important;
-                height: 100% !important;
-                max-height: 100% !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 210mm !important;
+                max-height: 297mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
                 overflow: hidden !important;
+                box-sizing: border-box !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -980,12 +982,12 @@
             }
 
             .main-container {
-                max-width: 100% !important;
-                width: 100% !important;
-                height: 100% !important;
-                max-height: 100% !important;
+                max-width: 210mm !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                max-height: 297mm !important;
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 8mm !important;
                 display: flex !important;
                 flex-direction: column !important;
                 box-sizing: border-box !important;
@@ -1017,7 +1019,7 @@
                 width: 100% !important;
                 height: 100% !important;
                 max-height: 100% !important;
-                padding: 8mm 10mm !important;
+                padding: 6mm 8mm !important;
                 border: 2px solid #1b285c !important;
                 box-sizing: border-box !important;
                 display: flex !important;
@@ -1032,7 +1034,7 @@
 
             .report-header-section {
                 text-align: center !important;
-                padding-bottom: 6px !important;
+                padding-bottom: 4px !important;
             }
 
             .report-logo-box {
@@ -1040,34 +1042,34 @@
             }
 
             .report-logo-box img {
-                max-height: 70px !important;
+                max-height: 65px !important;
                 width: auto !important;
             }
 
             .dept-main-title {
-                font-size: 12.5pt !important;
+                font-size: 12pt !important;
             }
 
             .dept-sub-title {
-                font-size: 10pt !important;
+                font-size: 9.5pt !important;
             }
 
             .dept-sponsor-text {
-                font-size: 8.2pt !important;
+                font-size: 8pt !important;
             }
 
             .dept-address-text {
-                font-size: 9pt !important;
+                font-size: 8.5pt !important;
             }
 
             .divider-thick {
-                margin: 6px 0 !important;
+                margin: 5px 0 !important;
             }
 
             .section-badge-tag {
-                padding: 3px 10px !important;
-                font-size: 8.5pt !important;
-                margin-bottom: 6px !important;
+                padding: 2.5px 9px !important;
+                font-size: 8pt !important;
+                margin-bottom: 5px !important;
             }
 
             .patient-table-wrap, .results-table-wrap {
@@ -1076,8 +1078,8 @@
 
             .patient-table {
                 width: 100% !important;
-                font-size: 9.2pt !important;
-                margin-bottom: 8px !important;
+                font-size: 9pt !important;
+                margin-bottom: 6px !important;
                 display: table !important;
             }
 
@@ -1088,18 +1090,18 @@
             }
 
             .patient-table td {
-                padding: 4.5px 6px !important;
+                padding: 3.5px 5px !important;
                 display: table-cell !important;
             }
 
             .patient-table td.lbl {
                 width: 18% !important;
-                font-size: 9.2pt !important;
+                font-size: 9pt !important;
             }
 
             .patient-table td.val {
                 width: 30% !important;
-                font-size: 9.2pt !important;
+                font-size: 9pt !important;
                 padding-left: 0 !important;
             }
 
@@ -1111,17 +1113,17 @@
             .results-table {
                 width: 100% !important;
                 min-width: 0 !important;
-                font-size: 9.5pt !important;
+                font-size: 9.2pt !important;
             }
 
             .results-table th {
-                padding: 5px 7px !important;
-                font-size: 9pt !important;
+                padding: 4.5px 6px !important;
+                font-size: 8.8pt !important;
             }
 
             .results-table td {
-                padding: 5px 7px !important;
-                font-size: 9.5pt !important;
+                padding: 4px 6px !important;
+                font-size: 9.2pt !important;
             }
 
             .signature-row {
@@ -1131,7 +1133,7 @@
                 grid-template-columns: none !important;
                 gap: 10px !important;
                 margin-top: auto !important;
-                padding-top: 14px !important;
+                padding-top: 10px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
@@ -1141,26 +1143,26 @@
             }
 
             .sig-space {
-                height: 30px !important;
+                height: 26px !important;
             }
 
             .sig-space img {
-                max-height: 30px !important;
+                max-height: 26px !important;
             }
 
             .sig-line {
-                font-size: 8pt !important;
+                font-size: 7.8pt !important;
                 width: 95% !important;
             }
 
             .sig-subname {
-                font-size: 7.5pt !important;
+                font-size: 7.2pt !important;
             }
 
             .report-notes {
-                font-size: 7.5pt !important;
-                margin-top: 10px !important;
-                padding-top: 5px !important;
+                font-size: 7.2pt !important;
+                margin-top: 8px !important;
+                padding-top: 4px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
