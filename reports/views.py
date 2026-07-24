@@ -1350,7 +1350,8 @@ def bulk_upload(request):
                     
                     metadata_fields = {
                         'labid', 'sampletype', 'patientname', 'receivingdate', 
-                        'reportingdate', 'age', 'sex', 'refby', 'testmethod'
+                        'reportingdate', 'age', 'ageunit', 'unit', 'sex', 'refby', 'testmethod',
+                        'sno', 'testname', 'resultvalue', 'interpretation'
                     }
 
                     # Pre-load TestConfig into dictionary for fast lookup in memory
@@ -1376,11 +1377,22 @@ def bulk_upload(request):
                         
                         # Parse age and age unit
                         age_raw = str(data.get('age', '') or '').strip().upper()
+                        age_unit_raw = str(data.get('ageunit', '') or data.get('unit', '') or '').strip().upper()
+                        
                         age_unit = 'Y'
-                        if 'M' in age_raw:
-                            age_unit = 'M'
-                        elif 'D' in age_raw:
-                            age_unit = 'D'
+                        if age_unit_raw:
+                            if age_unit_raw.startswith('M') or 'MONTH' in age_unit_raw:
+                                age_unit = 'M'
+                            elif age_unit_raw.startswith('D') or 'DAY' in age_unit_raw:
+                                age_unit = 'D'
+                            elif age_unit_raw.startswith('Y') or 'YEAR' in age_unit_raw:
+                                age_unit = 'Y'
+                        else:
+                            if 'M' in age_raw:
+                                age_unit = 'M'
+                            elif 'D' in age_raw:
+                                age_unit = 'D'
+                        
                         age_digits = re.sub(r'\D', '', age_raw)
                         parsed_age = int(age_digits) if age_digits else None
                         

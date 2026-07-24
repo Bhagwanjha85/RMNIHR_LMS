@@ -372,4 +372,46 @@ class PublicReportPortalTests(TestCase):
         self.assertNotContains(response, "bulk-upload")
 
 
+class BulkUploadAgeUnitTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username="bulk_admin",
+            password="password123",
+            email="bulk@test.com"
+        )
+        self.client = Client()
+        self.client.login(username="bulk_admin", password="password123")
+
+    def test_bulk_upload_ignores_age_unit_as_test_name(self):
+        import openpyxl
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["Lab ID", "Patient Name", "Age", "Age Unit", "Sex", "Ref By", "Sample Type", "Test Method", "Dengue IgM"])
+        ws.append(["LAB-001", "Jane Doe", 28, "Years", "F", "Self", "Blood", "ELISA", "12.5"])
+
+        file_stream = BytesIO()
+        wb.save(file_stream)
+        file_stream.seek(0)
+
+        uploaded_file = SimpleUploadedFile("bulk_test.xlsx", file_stream.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        response = self.client.post(reverse('bulk_upload'), {'excel_file': uploaded_file})
+        self.assertEqual(response.status_code, 302)
+
+        report = Report.objects.get(lab_id="LAB-001")
+        self.assertEqual(report.patient_name, "Jane Doe")
+        self.assertEqual(report.age_value, 28)
+        self.assertEqual(report.age_unit, "Y")
+
+        # Verify ReportTest only contains Dengue IgM, NOT Age Unit
+        test_names = list(report.tests.values_list('test_name', flat=True))
+        self.assertIn("Dengue IgM", test_names)
+        self.assertNotIn("Age Unit", test_names)
+        self.assertNotIn("age unit", [t.lower() for t in test_names])
+
+
+
 
