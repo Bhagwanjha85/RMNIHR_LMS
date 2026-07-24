@@ -11,7 +11,7 @@
     <style>
         :root {
             --primary: #1b285c;
-            --primary-hover:#6ff555;
+            --primary-hover:#42f11f;
             --accent: #1b285c;
             --bg: #f3f6f9;
             --card-bg: #ffffff;
@@ -47,7 +47,7 @@
         .portal-header {
             background: linear-gradient(135deg, #96a8f1 0%, #1b285c 100%);
             color: #ffffff;
-            padding: 16px 20px;
+            padding: 18px 24px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             width: 100%;
         }
@@ -58,46 +58,45 @@
             margin: 0 auto;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .brand-wrap {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin: 0 auto;
-            text-align: center;
+            justify-content: flex-start;
+            gap: 20px;
+            text-align: left;
+            margin: 0;
         }
 
         .logos-wrap {
             display: flex;
             align-items: center;
-            gap: 12px;
-            justify-content: center;
+            gap: 16px;
+            justify-content: flex-start;
         }
 
         .brand-logo, .emblem-logo {
-            max-height: 56px;
+            max-height: 76px;
             width: auto;
-            background-color: white;
-            padding: 4px 10px;
-            border-radius: 8px;
+            background-color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 10px;
             object-fit: contain;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
         }
 
         .brand-info {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
+            align-items: flex-start;
+            text-align: left;
         }
 
         .brand-info h1 {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 700;
             letter-spacing: -0.01em;
             line-height: 1.25;
@@ -105,9 +104,9 @@
         }
 
         .brand-info p {
-            font-size: 0.84rem;
+            font-size: 0.88rem;
             opacity: 0.95;
-            margin-top: 2px;
+            margin-top: 3px;
             color: #e2e8f0;
         }
 
@@ -778,6 +777,7 @@
             .header-container {
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
                 gap: 12px;
             }
 
@@ -786,11 +786,23 @@
                 gap: 10px;
                 flex-direction: column;
                 align-items: center;
+                justify-content: center;
+                text-align: center;
+                margin: 0 auto;
+            }
+
+            .logos-wrap {
+                justify-content: center;
             }
 
             .brand-logo, .emblem-logo {
                 max-height: 48px;
                 padding: 3px 6px;
+            }
+
+            .brand-info {
+                align-items: center;
+                text-align: center;
             }
 
             .brand-info h1 {
@@ -936,17 +948,18 @@
         /* ── PAGE & PRINT MEDIA RULES ── */
         @page {
             size: A4 portrait;
-            margin: 6mm 6mm 6mm 6mm;
+            margin: 8mm;
         }
 
         @media print {
             html, body {
                 width: 100% !important;
-                height: auto !important;
+                height: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
+                overflow: visible !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -979,9 +992,13 @@
                 margin: 0 auto !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 5mm 7mm !important;
+                padding: 8mm 10mm !important;
                 border: 2px solid #1b285c !important;
                 box-sizing: border-box !important;
+                min-height: 265mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 page-break-after: avoid !important;
@@ -990,42 +1007,42 @@
 
             .report-header-section {
                 text-align: center !important;
-                padding-bottom: 4px !important;
+                padding-bottom: 8px !important;
             }
 
             .report-logo-box {
-                margin-bottom: 4px !important;
+                margin-bottom: 6px !important;
             }
 
             .report-logo-box img {
-                max-height: 58px !important;
+                max-height: 75px !important;
                 width: auto !important;
             }
 
             .dept-main-title {
-                font-size: 11pt !important;
+                font-size: 12.5pt !important;
             }
 
             .dept-sub-title {
-                font-size: 9pt !important;
+                font-size: 10pt !important;
             }
 
             .dept-sponsor-text {
-                font-size: 7.5pt !important;
+                font-size: 8.2pt !important;
             }
 
             .dept-address-text {
-                font-size: 8pt !important;
+                font-size: 9pt !important;
             }
 
             .divider-thick {
-                margin: 5px 0 !important;
+                margin: 8px 0 !important;
             }
 
             .section-badge-tag {
-                padding: 2px 8px !important;
-                font-size: 7.5pt !important;
-                margin-bottom: 5px !important;
+                padding: 3px 10px !important;
+                font-size: 8.5pt !important;
+                margin-bottom: 8px !important;
             }
 
             .patient-table-wrap, .results-table-wrap {
@@ -1034,28 +1051,30 @@
 
             .patient-table {
                 width: 100% !important;
-                font-size: 8.5pt !important;
-                margin-bottom: 4px !important;
+                font-size: 9.2pt !important;
+                margin-bottom: 10px !important;
                 display: table !important;
             }
 
             .patient-table tr {
                 display: table-row !important;
                 margin-bottom: 0 !important;
+                flex: none !important;
             }
 
             .patient-table td {
-                padding: 2.5px 4px !important;
+                padding: 4.5px 6px !important;
+                display: table-cell !important;
             }
 
             .patient-table td.lbl {
                 width: 18% !important;
-                font-size: 8.5pt !important;
+                font-size: 9.2pt !important;
             }
 
             .patient-table td.val {
                 width: 30% !important;
-                font-size: 8.5pt !important;
+                font-size: 9.2pt !important;
                 padding-left: 0 !important;
             }
 
@@ -1067,17 +1086,17 @@
             .results-table {
                 width: 100% !important;
                 min-width: 0 !important;
-                font-size: 8.5pt !important;
+                font-size: 9.5pt !important;
             }
 
             .results-table th {
-                padding: 3.5px 5px !important;
-                font-size: 8.2pt !important;
+                padding: 6px 8px !important;
+                font-size: 9pt !important;
             }
 
             .results-table td {
-                padding: 3.5px 5px !important;
-                font-size: 8.5pt !important;
+                padding: 5px 8px !important;
+                font-size: 9.5pt !important;
             }
 
             .signature-row {
@@ -1085,9 +1104,9 @@
                 flex-direction: row !important;
                 justify-content: space-between !important;
                 grid-template-columns: none !important;
-                gap: 8px !important;
-                margin-top: 18px !important;
-                padding-top: 4px !important;
+                gap: 12px !important;
+                margin-top: auto !important;
+                padding-top: 16px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
@@ -1097,26 +1116,26 @@
             }
 
             .sig-space {
-                height: 24px !important;
+                height: 32px !important;
             }
 
             .sig-space img {
-                max-height: 24px !important;
+                max-height: 32px !important;
             }
 
             .sig-line {
-                font-size: 7.2pt !important;
+                font-size: 8pt !important;
                 width: 95% !important;
             }
 
             .sig-subname {
-                font-size: 6.8pt !important;
+                font-size: 7.5pt !important;
             }
 
             .report-notes {
-                font-size: 6.8pt !important;
-                margin-top: 6px !important;
-                padding-top: 4px !important;
+                font-size: 7.5pt !important;
+                margin-top: 12px !important;
+                padding-top: 6px !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
