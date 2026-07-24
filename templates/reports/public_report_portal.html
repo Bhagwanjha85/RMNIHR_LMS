@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1b285c;
-            --primary-hover: #141f48;
+            --primary: rgb(229, 231, 235);
+            --primary-hover:rgb(229, 231, 235);
             --accent: #1075BD;
             --bg: #f3f6f9;
             --card-bg: #ffffff;
@@ -47,11 +47,9 @@
         .portal-header {
             background: linear-gradient(135deg, #1b285c 0%, #1075BD 100%);
             color: #ffffff;
-            padding: 16px 20px 26px 20px;
+            padding: 16px 20px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             width: 100%;
-            position: relative;
-            border-bottom: 3px solid #1075BD;
         }
 
         .header-container {
@@ -61,7 +59,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
         .brand-wrap {
@@ -113,30 +110,34 @@
             color: #e2e8f0;
         }
 
+        /* ── PORTAL BADGE (BELOW NAVBAR, ABOVE SEARCH CARD) ── */
+        .badge-gov-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
         .badge-gov {
-            position: absolute;
-            left: 50%;
-            bottom: -15px;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: #ffffff;
-            color: #1b285c;
-            border: 2px solid #1075BD;
-            padding: 5px 20px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 800;
+            background: linear-gradient(135deg, #1b285c 0%, #1075BD 100%);
+            color: #ffffff;
+            border: 1px solid rgba(16, 117, 189, 0.3);
+            padding: 8px 24px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.8px;
             white-space: nowrap;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 14px rgba(27, 40, 92, 0.12);
         }
 
         /* ── MAIN CONTENT ── */
         .main-container {
             max-width: 1400px;
             width: 95%;
-            margin: 32px auto 24px auto;
+            margin: 24px auto;
             padding: 0 8px;
             flex: 1;
         }
@@ -770,7 +771,7 @@
         /* Tablets & Small Desktops (< 768px) */
         @media (max-width: 768px) {
             .portal-header {
-                padding: 14px 12px 26px 12px;
+                padding: 12px 16px;
             }
 
             .header-container {
@@ -781,7 +782,9 @@
 
             .brand-wrap {
                 width: 100%;
-                gap: 12px;
+                gap: 10px;
+                flex-direction: column;
+                align-items: center;
             }
 
             .brand-logo, .emblem-logo {
@@ -791,23 +794,25 @@
 
             .brand-info h1 {
                 font-size: 1.05rem;
+                text-align: center;
             }
 
             .brand-info p {
                 font-size: 0.78rem;
+                text-align: center;
+            }
+
+            .badge-gov-wrap {
+                margin-bottom: 16px;
             }
 
             .badge-gov {
-                position: absolute;
-                left: 50%;
-                bottom: -15px;
-                transform: translateX(-50%);
-                font-size: 0.7rem;
-                padding: 4px 14px;
+                font-size: 0.75rem;
+                padding: 6px 18px;
             }
 
             .main-container {
-                margin: 28px auto 16px auto;
+                margin: 16px auto;
                 padding: 0 12px;
             }
 
@@ -998,13 +1003,16 @@
                     <p>Rajendra Memorial Research Institute of Medical Sciences (VRDL)</p>
                 </div>
             </div>
-            <div class="badge-gov">
-                Public Patient Report Portal
-            </div>
         </div>
     </header>
 
     <div class="main-container">
+        <!-- PORTAL BADGE -->
+        <div class="badge-gov-wrap no-print">
+            <div class="badge-gov">
+                Public Patient Report Portal
+            </div>
+        </div>
         <!-- SEARCH CARD -->
         <div class="search-card no-print">
             <div class="search-card-title">
