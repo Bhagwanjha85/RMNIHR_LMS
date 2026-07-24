@@ -25,23 +25,41 @@ class Command(BaseCommand):
         # 1. Load Configurations from environment variables
         gdrive_folder_id = os.environ.get('GDRIVE_FOLDER_ID')
         service_account_info_str = os.environ.get('GDRIVE_SERVICE_ACCOUNT_JSON')
+        refresh_token = os.environ.get('GDRIVE_REFRESH_TOKEN')
+        client_id = os.environ.get('GDRIVE_CLIENT_ID')
+        client_secret = os.environ.get('GDRIVE_CLIENT_SECRET')
 
         if not gdrive_folder_id:
             self.stderr.write("Error: GDRIVE_FOLDER_ID environment variable is not set.")
             return
 
-        if not service_account_info_str:
-            self.stderr.write("Error: GDRIVE_SERVICE_ACCOUNT_JSON environment variable (service account key json string) is not set.")
-            return
-
         # 2. Authenticate with Google Drive API
+        drive_service = None
         try:
-            service_account_info = json.loads(service_account_info_str)
-            creds = service_account.Credentials.from_service_account_info(
-                service_account_info,
-                scopes=['https://www.googleapis.com/auth/drive.file']
-            )
-            drive_service = build('drive', 'v3', credentials=creds)
+            if refresh_token and client_id and client_secret:
+                from google.oauth2.credentials import Credentials
+                creds = Credentials(
+                    token=None,
+                    refresh_token=refresh_token,
+                    token_uri='https://oauth2.googleapis.com/token',
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    scopes=['https://www.googleapis.com/auth/drive.file']
+                )
+                drive_service = build('drive', 'v3', credentials=creds)
+                self.stdout.write("Authenticated via Google OAuth2 User Credentials.")
+            elif service_account_info_str:
+                from google.oauth2 import service_account
+                service_account_info = json.loads(service_account_info_str)
+                creds = service_account.Credentials.from_service_account_info(
+                    service_account_info,
+                    scopes=['https://www.googleapis.com/auth/drive.file']
+                )
+                drive_service = build('drive', 'v3', credentials=creds)
+                self.stdout.write("Authenticated via Google Service Account.")
+            else:
+                self.stderr.write("Error: Neither GDRIVE_SERVICE_ACCOUNT_JSON nor (GDRIVE_REFRESH_TOKEN + GDRIVE_CLIENT_ID + GDRIVE_CLIENT_SECRET) is set.")
+                return
         except Exception as e:
             self.stderr.write(f"Authentication failed: {e}")
             return
@@ -117,7 +135,8 @@ class Command(BaseCommand):
             uploaded_file = drive_service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields='id, webViewLink'
+                fields='id, webViewLink',
+                supportsAllDrives=True
             ).execute()
             
             self.stdout.write(
