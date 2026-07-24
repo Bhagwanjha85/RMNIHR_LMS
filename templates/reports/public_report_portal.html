@@ -932,43 +932,130 @@
             }
         }
 
-        /* ── PRINT MEDIA RULES ── */
+        /* ── PAGE & PRINT MEDIA RULES ── */
+        @page {
+            size: A4 portrait;
+            margin: 6mm 6mm 6mm 6mm;
+        }
+
         @media print {
-            body {
+            html, body {
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 background: #ffffff !important;
                 color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
-            .no-print, .portal-header, .search-card, .alert-error, .report-actions-bar, .portal-footer {
+            .no-print, .portal-header, .badge-gov-wrap, .search-card, .alert-error, .report-actions-bar, .collaborators-container, .portal-footer {
                 display: none !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             .main-container {
                 max-width: 100% !important;
-                margin: 0 !important;
+                width: 100% !important;
+                margin: 0 auto !important;
                 padding: 0 !important;
+                display: block !important;
+            }
+
+            .report-section {
+                margin: 0 auto !important;
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
 
             .printable-report-area {
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 5mm !important;
+                padding: 5mm 7mm !important;
                 border: 2px solid #1b285c !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
+            .report-header-section {
+                text-align: center !important;
+                padding-bottom: 4px !important;
+            }
+
+            .report-logo-box {
+                margin-bottom: 4px !important;
+            }
+
+            .report-logo-box img {
+                max-height: 58px !important;
+                width: auto !important;
+            }
+
+            .dept-main-title {
+                font-size: 11pt !important;
+            }
+
+            .dept-sub-title {
+                font-size: 9pt !important;
+            }
+
+            .dept-sponsor-text {
+                font-size: 7.5pt !important;
+            }
+
+            .dept-address-text {
+                font-size: 8pt !important;
+            }
+
+            .divider-thick {
+                margin: 5px 0 !important;
+            }
+
+            .section-badge-tag {
+                padding: 2px 8px !important;
+                font-size: 7.5pt !important;
+                margin-bottom: 5px !important;
+            }
+
+            .patient-table-wrap, .results-table-wrap {
+                overflow: visible !important;
+            }
+
+            .patient-table {
+                width: 100% !important;
+                font-size: 8.5pt !important;
+                margin-bottom: 4px !important;
+                display: table !important;
             }
 
             .patient-table tr {
                 display: table-row !important;
+                margin-bottom: 0 !important;
+            }
+
+            .patient-table td {
+                padding: 2.5px 4px !important;
             }
 
             .patient-table td.lbl {
                 width: 18% !important;
+                font-size: 8.5pt !important;
             }
 
             .patient-table td.val {
                 width: 30% !important;
+                font-size: 8.5pt !important;
+                padding-left: 0 !important;
             }
 
             .patient-table td.spacer {
@@ -976,9 +1063,61 @@
                 width: 4% !important;
             }
 
+            .results-table {
+                width: 100% !important;
+                min-width: 0 !important;
+                font-size: 8.5pt !important;
+            }
+
+            .results-table th {
+                padding: 3.5px 5px !important;
+                font-size: 8.2pt !important;
+            }
+
+            .results-table td {
+                padding: 3.5px 5px !important;
+                font-size: 8.5pt !important;
+            }
+
             .signature-row {
                 display: flex !important;
+                flex-direction: row !important;
                 justify-content: space-between !important;
+                grid-template-columns: none !important;
+                gap: 8px !important;
+                margin-top: 18px !important;
+                padding-top: 4px !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .sig-block {
+                flex: 1 !important;
+            }
+
+            .sig-space {
+                height: 24px !important;
+            }
+
+            .sig-space img {
+                max-height: 24px !important;
+            }
+
+            .sig-line {
+                font-size: 7.2pt !important;
+                width: 95% !important;
+            }
+
+            .sig-subname {
+                font-size: 6.8pt !important;
+            }
+
+            .report-notes {
+                font-size: 6.8pt !important;
+                margin-top: 6px !important;
+                padding-top: 4px !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
 
             * {
