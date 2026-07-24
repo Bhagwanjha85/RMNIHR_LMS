@@ -45,10 +45,10 @@
 
         /* ── HEADER ── */
         .portal-header {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, #1b285c 0%, #1075BD 100%);
             color: #ffffff;
-            padding: 14px 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            padding: 16px 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             width: 100%;
         }
 
@@ -59,35 +59,46 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
+            gap: 20px;
         }
 
         .brand-wrap {
             display: flex;
             align-items: center;
-            gap: 14px;
-            flex: 1;
-            min-width: 260px;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 0 auto;
+            text-align: center;
         }
 
-        .brand-logo {
+        .logos-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .brand-logo, .emblem-logo {
             max-height: 56px;
             width: auto;
             background: #ffffff;
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
             object-fit: contain;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .brand-info {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         .brand-info h1 {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: -0.01em;
             line-height: 1.25;
@@ -95,23 +106,25 @@
         }
 
         .brand-info p {
-            font-size: 0.82rem;
-            opacity: 0.9;
+            font-size: 0.84rem;
+            opacity: 0.95;
             margin-top: 2px;
             color: #e2e8f0;
         }
 
         .badge-gov {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 5px 14px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            padding: 6px 16px;
             border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.78rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
             white-space: nowrap;
             color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         /* ── MAIN CONTENT ── */
@@ -835,7 +848,10 @@
     <header class="portal-header no-print">
         <div class="header-container">
             <div class="brand-wrap">
-                <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo">
+                <div class="logos-wrap">
+                    <img src="{% static 'logo.png' %}" alt="ICMR-RMNIHR Logo" class="brand-logo">
+                    <img src="{% static 'navbar2.svg' %}" alt="Ashok Chakra Emblem" class="emblem-logo">
+                </div>
                 <div class="brand-info">
                     <h1>ICMR - RMNIHR / RMRIMS</h1>
                     <p>Rajendra Memorial Research Institute of Medical Sciences (VRDL)</p>
@@ -1148,5 +1164,25 @@
         <p>&copy; ICMR - Rajendra Memorial Research Institute of Medical Sciences (RMNIHR), Agamkuan, Patna, Bihar. All rights reserved.</p>
     </footer>
 
+    <!-- SECURITY ENHANCEMENTS -->
+    <script>
+        // Disable right-click context menu for security
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['U', 'S'].includes(e.key.toUpperCase()))
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
 </body>
 </html>

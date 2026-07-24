@@ -412,6 +412,74 @@ class BulkUploadAgeUnitTest(TestCase):
         self.assertNotIn("Age Unit", test_names)
         self.assertNotIn("age unit", [t.lower() for t in test_names])
 
+    def test_bulk_upload_clears_dashboard_cache_immediately(self):
+        import openpyxl
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        # Visit dashboard first to prime cache with 0 reports
+        dash_initial = self.client.get(reverse('dashboard'))
+        self.assertEqual(dash_initial.context['total_count'], 0)
+
+        # Now bulk upload 1 report
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["Lab ID", "Patient Name", "Age", "Age Unit", "Sex", "Ref By", "Sample Type", "Test Method", "Dengue IgM"])
+        ws.append(["LAB-002", "John Smith", 40, "Years", "M", "Self", "Blood", "ELISA", "15.0"])
+
+        file_stream = BytesIO()
+        wb.save(file_stream)
+        file_stream.seek(0)
+        uploaded_file = SimpleUploadedFile("bulk_test2.xlsx", file_stream.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        self.client.post(reverse('bulk_upload'), {'excel_file': uploaded_file})
+
+        # Immediately visit dashboard again in same session
+        dash_after = self.client.get(reverse('dashboard'))
+        self.assertEqual(dash_after.context['total_count'], 1)
+        self.assertEqual(dash_after.context['positive_count'], 1)
+
+
+class PublicReportAccessTest(TestCase):
+    def setUp(self):
+        self.report = Report.objects.create(
+            lab_id="PUB-100",
+            patient_name="Public Patient",
+            age_value=30,
+            age_unit="Y",
+            sex="F"
+        )
+        self.client = Client()
+
+    def test_public_report_access_tracks_unique_lab_id_once(self):
+        url = reverse('public_report_search')
+        
+        # Initial access before search should have 0 public report count
+        res1 = self.client.get(url)
+        self.assertEqual(res1.context['total_reports_count'], 0)
+
+        # First successful search for PUB-100
+        res2 = self.client.post(url, {
+            'lab_id': 'PUB-100',
+            'age_value': 30,
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(res2.status_code, 200)
+        self.assertIsNotNone(res2.context['report'])
+        self.assertEqual(res2.context['total_reports_count'], 1)
+
+        # Repeated search for same lab_id PUB-100 (should NOT increment count, no proxy count)
+        res3 = self.client.post(url, {
+            'lab_id': 'PUB-100',
+            'age_value': 30,
+            'age_unit': 'Y',
+            'sex': 'F'
+        })
+        self.assertEqual(res3.status_code, 200)
+        self.assertEqual(res3.context['total_reports_count'], 1)
+
+
 
 
 

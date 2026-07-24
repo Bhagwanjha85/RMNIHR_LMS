@@ -342,6 +342,15 @@ class TemplateConfig(models.Model):
         return "Template Configuration"
 
 
+class PublicReportAccess(models.Model):
+    lab_id = models.CharField(max_length=100, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Public Access: {self.lab_id}"
+
+
 # Cache Invalidation & Backup Signals
 from django.core.cache import cache
 
@@ -349,6 +358,7 @@ from django.core.cache import cache
 @receiver([post_save, post_delete], sender=TemplateConfig)
 @receiver([post_save, post_delete], sender=Report)
 @receiver([post_save, post_delete], sender=ReportTest)
+@receiver([post_save, post_delete], sender=PublicReportAccess)
 def clear_cache_on_write(sender, instance, **kwargs):
     cache.clear()
 
@@ -357,5 +367,6 @@ def handle_test_config_write(sender, instance, **kwargs):
     cache.clear()
     from reports.backup_utils import save_test_configs_to_backup
     save_test_configs_to_backup()
+
 
 

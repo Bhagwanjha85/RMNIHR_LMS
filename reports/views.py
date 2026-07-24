@@ -1237,12 +1237,16 @@ def bulk_delete_reports(request):
                 
             count = reports.count()
             reports.delete()
+            from django.core.cache import cache
+            cache.clear()
             messages.success(request, f"{count} reports deleted successfully.")
         else:
             report_ids = request.POST.getlist('report_ids')
             if report_ids:
                 count = len(report_ids)
                 Report.objects.filter(pk__in=report_ids).delete()
+                from django.core.cache import cache
+                cache.clear()
                 messages.success(request, f"{count} reports deleted successfully.")
         
         # Build redirect URL with parameters preserved
@@ -1573,6 +1577,9 @@ def bulk_upload(request):
                                 ))
                                 
                         ReportTest.objects.bulk_create(tests_to_create, batch_size=1000)
+                        
+                        from django.core.cache import cache
+                        cache.clear()
                         
                 return redirect('dashboard')
             except Exception as e:
@@ -2212,13 +2219,18 @@ def public_report_search(request):
                     sex=sex
                 )
                 report = matched_reports.first()
-                if not report:
+                if report:
+                    # Record unique public report access for this lab_id (no proxy/duplicate counts)
+                    from reports.models import PublicReportAccess
+                    PublicReportAccess.objects.get_or_create(lab_id=report.lab_id.strip().upper())
+                else:
                     error_message = f"No report found matching Lab ID '{lab_id}'. Please check your Lab ID, Age, and Gender details."
             except (ValueError, TypeError):
                 error_message = "Invalid age entered. Please enter a valid number for age."
 
     template_config = TemplateConfig.get_solo()
-    total_reports_count = Report.objects.count()
+    from reports.models import PublicReportAccess
+    total_reports_count = PublicReportAccess.objects.count()
 
     formatted_receiving_date = ""
     formatted_reporting_date = ""
